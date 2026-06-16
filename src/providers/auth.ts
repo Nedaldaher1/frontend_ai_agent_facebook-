@@ -4,7 +4,7 @@ import { TOKEN_KEY } from "./constants";
 export const authProvider: AuthProvider = {
   login: async ({ username, email, password }) => {
     if ((username || email) && password) {
-      localStorage.setItem(TOKEN_KEY, username);
+      localStorage.setItem(TOKEN_KEY, username ?? email);
       return {
         success: true,
         redirectTo: "/",
@@ -15,7 +15,26 @@ export const authProvider: AuthProvider = {
       success: false,
       error: {
         name: "LoginError",
-        message: "Invalid username or password",
+        message: "بيانات الدخول غير صحيحة",
+      },
+    };
+  },
+  // Mock registration — stores a session token like login does.
+  // Replace with a real backend call when auth is wired (CLAUDE.md §2).
+  register: async ({ name, email, password }) => {
+    if (email && password) {
+      localStorage.setItem(TOKEN_KEY, name ?? email);
+      return {
+        success: true,
+        redirectTo: "/",
+      };
+    }
+
+    return {
+      success: false,
+      error: {
+        name: "RegisterError",
+        message: "تعذّر إنشاء الحساب — تحقّق من البيانات",
       },
     };
   },
