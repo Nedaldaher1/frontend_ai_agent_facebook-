@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:#0B0C0F;-webkit-font-smoothing:antialiased}
+input,button,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:#D4D7DD;border-radius:9px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:#BFC3CB;background-clip:content-box}
+@keyframes msSk{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
+@keyframes msToast{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes msFade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@keyframes msSpin{to{transform:rotate(360deg)}}
+@keyframes msOv{from{opacity:0}to{opacity:1}}
+@keyframes msPop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+</style>
+</helmet>
+
+<div dir="rtl" style="min-height:100vh;background:#0B0C0F">
+
+  <!-- review screen switcher -->
+  <div style="position:fixed;top:0;right:0;left:0;height:42px;z-index:60;background:#0B0C0F;display:flex;align-items:center;gap:14px;padding:0 18px;border-bottom:1px solid #20232B">
+    <span style="display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:#7C808A;letter-spacing:.2px;white-space:nowrap">
+      <span style="width:6px;height:6px;border-radius:50%;background:#E2A33A;box-shadow:0 0 0 3px rgba(226,163,58,.16)"></span>
+      وضع المراجعة
+    </span>
+    <div style="display:flex;gap:4px;background:#15171C;padding:4px;border-radius:11px;border:1px solid #23262E">
+      <sc-for list="{{ screens }}" as="sc" hint-placeholder-count="5">
+        <button onClick="{{ sc.onClick }}" style="{{ sc.style }}" style-hover="color:#fff">{{ sc.label }}</button>
+      </sc-for>
+    </div>
+    <span style="margin-inline-start:auto;font-size:11.5px;color:#5C6068">بيانات تجريبية — غير مربوطة بالخادم</span>
+  </div>
+
+  <!-- app shell -->
+  <div style="position:fixed;top:42px;right:0;left:0;bottom:0;display:grid;grid-template-columns:1fr 268px;background:#F4F5F7">
+
+    <!-- ===== MAIN ===== -->
+    <main style="overflow-y:auto;height:100%">
+      <div style="max-width:1200px;margin:0 auto;padding:30px 38px 80px">
+
+        <!-- ===== PRODUCTS SCREEN ===== -->
+        <sc-if value="{{ isProducts }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <!-- header -->
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px">
+              <div>
+                <div style="font-size:12px;font-weight:600;color:#9AA0A9;margin-bottom:7px">الكتالوج</div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <h1 style="margin:0;font-size:30px;font-weight:600;color:#14161B;letter-spacing:-.4px">المنتجات</h1>
+                  <span style="font-size:13px;font-weight:600;color:#6B7079;background:#fff;border:1px solid #E6E8EC;border-radius:20px;padding:4px 12px">{{ totalCount }} منتج</span>
+                </div>
+                <p style="margin:9px 0 0;font-size:13.5px;color:#7A7F88;max-width:480px;line-height:1.6">يقرأ المساعد الذكي هذا الكتالوج مباشرةً — تأكّد من دقّة البيانات وانشر المنتجات الجاهزة فقط.</p>
+              </div>
+              <button onClick="{{ onAddProduct }}" style="{{ ui.primaryBtn }}" style-hover="filter:brightness(.93)">
+                <span style="font-size:18px;line-height:0;margin-top:-2px">＋</span> إضافة منتج
+              </button>
+            </div>
+
+            <!-- toolbar -->
+            <sc-if value="{{ showToolbar }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px">
+                <div style="position:relative;flex:1;min-width:160px">
+                  <span style="position:absolute;top:50%;right:13px;transform:translateY(-50%);color:#A2A7AF;font-size:15px">⌕</span>
+                  <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="ابحث باسم المنتج…" style="width:100%;font-size:14px;color:#14161B;background:#fff;border:1px solid #E2E4E9;border-radius:12px;padding:11px 38px 11px 14px;outline:none" style-focus="border-color:#2B50D6;box-shadow:0 0 0 3px rgba(43,80,214,.12)">
+                </div>
+                <select value="{{ filterColor }}" onChange="{{ onFilterColor }}" style="{{ ui.select }}" style-focus="border-color:#2B50D6">
+                  <sc-for list="{{ colorFilterOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                </select>
+                <select value="{{ filterStatus }}" onChange="{{ onFilterStatus }}" style="{{ ui.select }}" style-focus="border-color:#2B50D6">
+                  <sc-for list="{{ statusFilterOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                </select>
+                <select value="{{ filterStock }}" onChange="{{ onFilterStock }}" style="{{ ui.select }}" style-focus="border-color:#2B50D6">
+                  <sc-for list="{{ stockFilterOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                </select>
+              </div>
+            </sc-if>
+
+            <!-- LIST table -->
+            <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+              <div style="background:#fff;border:1px solid #ECEDF1;border-radius:18px;overflow:hidden;overflow-x:auto;box-shadow:0 1px 2px rgba(16,18,22,.04),0 14px 38px -28px rgba(16,18,22,.28)">
+                <!-- head row -->
+                <div style="display:grid;grid-template-columns:52px minmax(170px,1fr) 96px 104px 96px 100px 104px;min-width:760px;align-items:center;gap:8px;padding:13px 22px;background:#FAFAFB;border-bottom:1px solid #EEEFF2;font-size:11.5px;font-weight:600;color:#9197A0">
+                  <div></div><div>المنتج</div><div>السعر</div><div>الألوان</div><div>المخزون</div><div>النشر</div><div style="text-align:left">إجراءات</div>
+                </div>
+                <sc-for list="{{ products }}" as="p" hint-placeholder-count="6">
+                  <div style="display:grid;grid-template-columns:52px minmax(170px,1fr) 96px 104px 96px 100px 104px;min-width:760px;align-items:center;gap:8px;padding:12px 22px;border-bottom:1px solid #F1F2F4" style-hover="background:#FBFBFC">
+                    <div style="{{ p.thumbStyle }}"><span style="font-size:9px;font-weight:600;color:rgba(20,22,27,.34)">صورة</span></div>
+                    <div style="min-width:0">
+                      <div style="font-size:14px;font-weight:600;color:#1B1D23;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</div>
+                      <div style="font-size:11.5px;color:#9197A0;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.tagsLine }}</div>
+                    </div>
+                    <div style="font-size:14px;font-weight:600;color:#1B1D23;font-feature-settings:'tnum'">{{ p.price }} <span style="font-size:11px;color:#9197A0;font-weight:500">د.أ</span></div>
+                    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+                      <sc-for list="{{ p.colorDots }}" as="cd" hint-placeholder-count="2"><span style="{{ cd.style }}" title="{{ cd.name }}"></span></sc-for>
+                      <sc-if value="{{ p.colorMore }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;color:#9197A0">{{ p.colorMore }}</span></sc-if>
+                    </div>
+                    <div><span style="{{ p.stockStyle }}"><span style="{{ p.stockDot }}"></span>{{ p.stockLabel }}</span></div>
+                    <div><span style="{{ p.statusStyle }}">{{ p.statusLabel }}</span></div>
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px">
+                      <button onClick="{{ p.onEdit }}" title="تعديل" style="{{ ui.iconBtn }}" style-hover="background:#EEF1FC;border-color:#CBD6F5;color:#2B50D6">✎</button>
+                      <button onClick="{{ p.onToggleStatus }}" title="{{ p.toggleTitle }}" style="{{ ui.iconBtn }}" style-hover="background:#EEF1FC;border-color:#CBD6F5;color:#2B50D6">{{ p.toggleGlyph }}</button>
+                      <button onClick="{{ p.onDelete }}" title="حذف" style="{{ ui.iconBtn }}" style-hover="background:#FBEDED;border-color:#F2D6D6;color:#C0392B">🗑</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- EMPTY -->
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#fff;border:1px solid #ECEDF1;border-radius:18px;padding:74px 30px;text-align:center;box-shadow:0 1px 2px rgba(16,18,22,.04)">
+                <div style="width:88px;height:88px;margin:0 auto 22px;border-radius:24px;background:linear-gradient(155deg,#EEF1FC,#fff);border:1px solid #E3E8F8;display:flex;align-items:center;justify-content:center;font-size:34px;color:#2B50D6">◇</div>
+                <h2 style="margin:0 0 8px;font-size:21px;font-weight:600;color:#14161B">أضف أوّل منتج لكتالوجك</h2>
+                <p style="margin:0 auto 24px;font-size:14px;color:#7A7F88;max-width:380px;line-height:1.7">ابدأ برفع صور العباية ودع الذكاء الاصطناعي يقترح الخصائص — ثم راجعها وانشرها ليراها زبائنك.</p>
+                <button onClick="{{ onAddProduct }}" style="{{ ui.primaryBtn }};margin:0 auto" style-hover="filter:brightness(.93)"><span style="font-size:18px;line-height:0;margin-top:-2px">＋</span> إضافة منتج</button>
+              </div>
+            </sc-if>
+
+            <!-- LOADING -->
+            <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#fff;border:1px solid #ECEDF1;border-radius:18px;overflow:hidden;overflow-x:auto;box-shadow:0 1px 2px rgba(16,18,22,.04)">
+                <div style="padding:13px 22px;background:#FAFAFB;border-bottom:1px solid #EEEFF2;display:flex;align-items:center;gap:9px;font-size:12px;color:#9197A0"><span style="width:13px;height:13px;border:2px solid #D7DBE2;border-top-color:#2B50D6;border-radius:50%;display:inline-block;animation:msSpin .7s linear infinite"></span> جارٍ تحميل المنتجات…</div>
+                <sc-for list="{{ skeleton }}" as="k" hint-placeholder-count="6">
+                  <div style="display:grid;grid-template-columns:52px minmax(170px,1fr) 96px 104px 96px 100px 104px;min-width:760px;align-items:center;gap:8px;padding:14px 22px;border-bottom:1px solid #F1F2F4">
+                    <div style="width:42px;height:50px;border-radius:9px;background:#EDEEF1;animation:msSk 1.3s ease-in-out infinite"></div>
+                    <div><div style="height:11px;width:62%;border-radius:6px;background:#EDEEF1;animation:msSk 1.3s ease-in-out infinite"></div><div style="height:9px;width:38%;border-radius:6px;background:#F0F1F4;margin-top:8px;animation:msSk 1.3s ease-in-out infinite"></div></div>
+                    <div style="height:11px;width:60%;border-radius:6px;background:#EDEEF1;animation:msSk 1.3s ease-in-out infinite"></div>
+                    <div style="height:11px;width:70%;border-radius:6px;background:#EDEEF1;animation:msSk 1.3s ease-in-out infinite"></div>
+                    <div style="height:20px;width:74px;border-radius:20px;background:#EDEEF1;animation:msSk 1.3s ease-in-out infinite"></div>
+                    <div style="height:20px;width:64px;border-radius:20px;background:#EDEEF1;animation:msSk 1.3s ease-in-out infinite"></div>
+                    <div style="height:11px;width:50%;border-radius:6px;background:#F0F1F4;margin-inline-start:auto;animation:msSk 1.3s ease-in-out infinite"></div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- ERROR -->
+            <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#fff;border:1px solid #F2DCDC;border-radius:18px;padding:60px 30px;text-align:center;box-shadow:0 1px 2px rgba(16,18,22,.04)">
+                <div style="width:78px;height:78px;margin:0 auto 20px;border-radius:22px;background:#FBEDED;border:1px solid #F2D6D6;display:flex;align-items:center;justify-content:center;font-size:30px;color:#C0392B">⚠</div>
+                <h2 style="margin:0 0 8px;font-size:20px;font-weight:600;color:#14161B">تعذّر تحميل المنتجات</h2>
+                <p style="margin:0 auto 24px;font-size:14px;color:#7A7F88;max-width:380px;line-height:1.7">حدث خطأ أثناء الاتصال بالخادم. تحقّق من الاتصال وحاول مرّة أخرى.</p>
+                <button onClick="{{ onRetry }}" style="display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:14px;font-weight:600;color:#14161B;background:#fff;border:1px solid #DADDE2;border-radius:12px;padding:11px 20px;cursor:pointer" style-hover="background:#F6F7F9;border-color:#C7CBD2"><span style="font-size:15px">↻</span> إعادة المحاولة</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ===== FORM SCREEN ===== -->
+        <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <!-- breadcrumb + title -->
+            <div style="margin-bottom:24px">
+              <button onClick="{{ onCancelForm }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:#7A7F88;background:transparent;border:none;cursor:pointer;padding:0;margin-bottom:14px" style-hover="color:#2B50D6"><span style="font-size:15px">→</span> العودة إلى المنتجات</button>
+              <h1 style="margin:0;font-size:28px;font-weight:600;color:#14161B;letter-spacing:-.4px">{{ formTitle }}</h1>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 332px;gap:24px;align-items:start">
+
+              <!-- form column -->
+              <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+
+                <!-- 1 IMAGES (each image = a color variant) -->
+                <section style="{{ ui.card }}">
+                  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px"><span style="{{ ui.stepNo }}">١</span><h3 style="{{ ui.h3 }}">صور المنتج وألوانه</h3><span style="{{ ui.req }}">مطلوبة</span></div>
+                  <p style="{{ ui.hint }}">كل صورة تمثّل لوناً من ألوان العباية — ارفع صورة لكل لون وحدّد لونه من القائمة.</p>
+                  <sc-if value="{{ errImages }}" hint-placeholder-val="{{ false }}"><div style="{{ ui.errMsg }}">يجب رفع صورة واحدة على الأقل</div></sc-if>
+                  <div style="display:flex;flex-wrap:wrap;gap:13px;margin-top:14px">
+                    <button onClick="{{ onAddImage }}" style="width:120px;height:230px;border-radius:14px;border:1.5px dashed #C6CCD6;background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:#7A7F88" style-hover="border-color:#2B50D6;background:#EEF1FC;color:#2B50D6">
+                      <span style="font-size:24px">⤓</span><span style="font-size:12px;font-weight:600">أضف لون / صورة</span><span style="font-size:10.5px;color:#A2A7AF">PNG · JPG</span>
+                    </button>
+                    <sc-for list="{{ gallery }}" as="g" hint-placeholder-count="3">
+                      <div style="width:120px;position:relative">
+                        <div style="{{ g.thumbStyle }}">
+                          <sc-if value="{{ g.isMain }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:7px;right:7px;font-size:10px;font-weight:600;color:#fff;background:rgba(43,80,214,.92);border-radius:7px;padding:3px 8px">★ رئيسية</span></sc-if>
+                          <div style="position:absolute;inset:auto 7px 7px;display:flex;gap:5px">
+                            <sc-if value="{{ g.canMain }}" hint-placeholder-val="{{ false }}"><button onClick="{{ g.onMain }}" title="تعيين رئيسية" style="{{ ui.imgBtn }}" style-hover="background:#fff;color:#2B50D6">★</button></sc-if>
+                            <button onClick="{{ g.onRemove }}" title="حذف" style="{{ ui.imgBtn }}" style-hover="background:#fff;color:#C0392B">✕</button>
+                          </div>
+                        </div>
+                        <div style="margin-top:8px">
+                          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="{{ g.swatchStyle }}"></span><span style="font-size:10.5px;font-weight:600;color:#7A7F88">لون هذه الصورة</span></div>
+                          <select value="{{ g.color }}" onChange="{{ g.onColor }}" style="{{ ui.selectSm }}" style-focus="border-color:#2B50D6">
+                            <option value="">— اختر —</option>
+                            <sc-for list="{{ colorOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for>
+                          </select>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:4px;margin-top:7px">
+                          <span style="{{ g.analyzeStyle }}"><span style="{{ g.analyzeDot }}"></span>{{ g.analyzeLabel }}</span>
+                          <span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:#9197A0"><span style="width:5px;height:5px;border-radius:50%;background:#C7CBD2"></span>embedding · قيد الإعداد</span>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </section>
+
+                <!-- 2 AI SUGGESTIONS -->
+                <section style="{{ ui.aiCard }}">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                    <div style="display:flex;align-items:baseline;gap:10px">
+                      <span style="{{ ui.stepNo }}">٢</span>
+                      <div>
+                        <div style="display:flex;align-items:center;gap:8px"><h3 style="{{ ui.h3 }}">اقتراحات الذكاء الاصطناعي</h3><span style="{{ ui.aiTag }}">مراجعة بشرية</span></div>
+                        <p style="{{ ui.hint }};margin-top:5px">استخرجها Vision من الصور — راجعها وعدّلها قبل الاعتماد.</p>
+                      </div>
+                    </div>
+                    <button onClick="{{ onApproveAll }}" style="{{ ui.approveBtn }}" style-hover="filter:brightness(.95)"><span style="font-size:14px;margin-top:-1px">✓</span> اعتمد الكل</button>
+                  </div>
+                  <sc-if value="{{ aiApproved }}" hint-placeholder-val="{{ false }}"><div style="margin-top:13px;display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#1B7A4E;background:#EAF6EF;border:1px solid #CDEBD9;border-radius:9px;padding:7px 12px"><span>✓</span> تم اعتماد كل الاقتراحات وتعبئتها في الحقول</div></sc-if>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:15px">
+                    <sc-for list="{{ ai }}" as="a" hint-placeholder-count="4">
+                      <div style="background:#fff;border:1px solid #E4E9F7;border-radius:12px;padding:11px 13px">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+                          <span style="font-size:11.5px;font-weight:600;color:#7A7F88">{{ a.label }}</span>
+                          <sc-if value="{{ showConf }}" hint-placeholder-val="{{ true }}"><span style="{{ a.confStyle }}">{{ a.confPct }}٪</span></sc-if>
+                        </div>
+                        <input value="{{ a.value }}" onInput="{{ a.onInput }}" style="width:100%;font-size:13.5px;font-weight:600;color:#14161B;background:#F8F9FB;border:1px solid #E2E4E9;border-radius:8px;padding:8px 10px;outline:none" style-focus="border-color:#2B50D6;background:#fff">
+                        <sc-if value="{{ showConf }}" hint-placeholder-val="{{ true }}"><div style="height:3px;border-radius:3px;background:#EDEFF4;margin-top:9px;overflow:hidden"><div style="{{ a.barStyle }}"></div></div></sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </section>
+
+                <!-- 3 BASIC INFO + SIZING -->
+                <section style="{{ ui.card }}">
+                  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="{{ ui.stepNo }}">٣</span><h3 style="{{ ui.h3 }}">المعلومات والمقاسات</h3></div>
+                  <div style="display:flex;flex-direction:column;gap:18px">
+                    <div>
+                      <label style="{{ ui.label }}">اسم المنتج <span style="color:#C0392B">*</span></label>
+                      <input value="{{ form.name }}" onInput="{{ onName }}" placeholder="مثال: عباية كلوش مطرّزة" style="{{ form.nameStyle }}" style-focus="border-color:#2B50D6;box-shadow:0 0 0 3px rgba(43,80,214,.12)">
+                      <sc-if value="{{ errName }}" hint-placeholder-val="{{ false }}"><div style="{{ ui.errMsg }}">اسم المنتج مطلوب</div></sc-if>
+                    </div>
+                    <div>
+                      <label style="{{ ui.label }}">الوصف</label>
+                      <textarea value="{{ form.description }}" onInput="{{ onDescription }}" rows="3" placeholder="تفاصيل القماش، القَصّة، التطريز، نصائح المقاس…" style="{{ ui.input }};resize:vertical;line-height:1.6" style-focus="border-color:#2B50D6;box-shadow:0 0 0 3px rgba(43,80,214,.12)"></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                      <div>
+                        <label style="{{ ui.label }}">السعر <span style="color:#C0392B">*</span></label>
+                        <div style="display:flex;align-items:center;background:#fff;border:1px solid {{ form.priceBorder }};border-radius:11px;overflow:hidden" style-focus-within="border-color:#2B50D6">
+                          <input value="{{ form.price }}" onInput="{{ onPrice }}" inputmode="decimal" placeholder="0.000" style="flex:1;min-width:0;font-size:14px;font-weight:600;color:#14161B;border:none;outline:none;padding:11px 13px;font-feature-settings:'tnum'">
+                          <span style="font-size:12.5px;font-weight:600;color:#7A7F88;padding:0 14px;border-inline-start:1px solid #EBECEF;align-self:stretch;display:flex;align-items:center">د.أ</span>
+                        </div>
+                        <sc-if value="{{ errPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ ui.errMsg }}">أدخل سعراً صحيحاً</div></sc-if>
+                      </div>
+                      <div>
+                        <label style="{{ ui.label }}">حالة التوفّر</label>
+                        <div style="display:flex;gap:7px">
+                          <sc-for list="{{ stockChips }}" as="c" hint-placeholder-count="3">
+                            <button onClick="{{ c.onPick }}" style="{{ c.style }}" style-hover="border-color:#C7CBD2">{{ c.label }}</button>
+                          </sc-for>
+                        </div>
+                        <div style="font-size:11px;color:#9197A0;margin-top:7px">لا حاجة لعدد القطع — فقط حدّد التوفّر.</div>
+                      </div>
+                    </div>
+
+                    <!-- weight-based sizes -->
+                    <div>
+                      <label style="{{ ui.label }}">المقاسات المتوفّرة <span style="font-weight:500;color:#9197A0">(حسب الوزن)</span></label>
+                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+                        <sc-for list="{{ sizeChips }}" as="c" hint-placeholder-count="4">
+                          <button onClick="{{ c.onToggle }}" style="{{ c.style }}" style-hover="border-color:#C7CBD2">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                              <span style="font-size:14px;font-weight:600">مقاس {{ c.no }}</span>
+                              <span style="{{ c.checkStyle }}">{{ c.check }}</span>
+                            </div>
+                            <div style="font-size:12px;opacity:.8;margin-top:3px;font-feature-settings:'tnum'">{{ c.range }}</div>
+                          </button>
+                        </sc-for>
+                      </div>
+                      <div style="font-size:11.5px;color:#9197A0;margin-top:9px">اختر المقاسات المتوفّرة لهذه العباية حسب وزن الزبونة.</div>
+                    </div>
+
+                    <!-- max weight + optional measurements -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+                      <div>
+                        <label style="{{ ui.label }}">أقصى وزن تتّسع له العباية</label>
+                        <div style="{{ ui.suffixWrap }}" style-focus-within="border-color:#2B50D6">
+                          <input value="{{ form.maxWeight }}" onInput="{{ onMaxWeight }}" inputmode="numeric" placeholder="مثال: 150" style="{{ ui.suffixInput }}">
+                          <span style="{{ ui.suffixUnit }}">كغ</span>
+                        </div>
+                        <div style="font-size:11px;color:#9197A0;margin-top:7px">الحدّ الأقصى لوزن من تلبسها.</div>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px"><span style="font-size:13px;font-weight:600;color:#3A3E47">القياسات</span><span style="{{ ui.opt }}">اختياري</span></div>
+                      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                        <div>
+                          <div style="font-size:12px;color:#7A7F88;margin-bottom:6px">عرض الكتف</div>
+                          <div style="{{ ui.suffixWrap }}" style-focus-within="border-color:#2B50D6"><input value="{{ form.shoulder }}" onInput="{{ onShoulder }}" inputmode="numeric" placeholder="—" style="{{ ui.suffixInput }}"><span style="{{ ui.suffixUnit }}">سم</span></div>
+                        </div>
+                        <div>
+                          <div style="font-size:12px;color:#7A7F88;margin-bottom:6px">العرض عند الإبط</div>
+                          <div style="{{ ui.suffixWrap }}" style-focus-within="border-color:#2B50D6"><input value="{{ form.armpit }}" onInput="{{ onArmpit }}" inputmode="numeric" placeholder="—" style="{{ ui.suffixInput }}"><span style="{{ ui.suffixUnit }}">سم</span></div>
+                        </div>
+                        <div>
+                          <div style="font-size:12px;color:#7A7F88;margin-bottom:6px">الطول</div>
+                          <div style="{{ ui.suffixWrap }}" style-focus-within="border-color:#2B50D6"><input value="{{ form.length }}" onInput="{{ onLength }}" inputmode="numeric" placeholder="—" style="{{ ui.suffixInput }}"><span style="{{ ui.suffixUnit }}">سم</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- 4 ATTRIBUTES -->
+                <section style="{{ ui.card }}">
+                  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px"><span style="{{ ui.stepNo }}">٤</span><h3 style="{{ ui.h3 }}">الخصائص</h3></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div>
+                      <label style="{{ ui.label }}">نوع الكم</label>
+                      <select value="{{ form.sleeve }}" onChange="{{ onSleeve }}" style="{{ ui.select }};width:100%" style-focus="border-color:#2B50D6"><option value="">— اختر —</option><sc-for list="{{ sleeveOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                    </div>
+                    <div>
+                      <label style="{{ ui.label }}">القماش</label>
+                      <select value="{{ form.fabric }}" onChange="{{ onFabric }}" style="{{ ui.select }};width:100%" style-focus="border-color:#2B50D6"><option value="">— اختر —</option><sc-for list="{{ fabricOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                    </div>
+                    <div>
+                      <label style="{{ ui.label }}">المناسبة</label>
+                      <select value="{{ form.occasion }}" onChange="{{ onOccasion }}" style="{{ ui.select }};width:100%" style-focus="border-color:#2B50D6"><option value="">— اختر —</option><sc-for list="{{ occasionOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                    </div>
+                    <div>
+                      <label style="{{ ui.label }}">التطريز / الزينة</label>
+                      <select value="{{ form.embroidery }}" onChange="{{ onEmbroidery }}" style="{{ ui.select }};width:100%" style-focus="border-color:#2B50D6"><option value="">— اختر —</option><sc-for list="{{ embroideryOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                    </div>
+                  </div>
+                  <div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#9197A0;margin-top:13px"><span style="font-size:11px">🔒</span> قوائم محصورة لضمان اتساق القيم</div>
+                </section>
+
+                <!-- 5 TAGS -->
+                <section style="{{ ui.card }}">
+                  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px"><span style="{{ ui.stepNo }}">٥</span><h3 style="{{ ui.h3 }}">الوسوم</h3></div>
+                  <p style="{{ ui.hint }}">أوصاف حرّة تساعد المساعد الذكي على المطابقة — اضغط Enter للإضافة.</p>
+                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;background:#fff;border:1px solid #E2E4E9;border-radius:11px;padding:9px 11px;margin-top:13px" style-focus-within="border-color:#2B50D6">
+                    <sc-for list="{{ tagChips }}" as="t" hint-placeholder-count="3">
+                      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:#2B50D6;background:#EEF1FC;border:1px solid #D6DEF8;border-radius:8px;padding:5px 6px 5px 10px">{{ t.label }}<button onClick="{{ t.onRemove }}" style="border:none;background:transparent;color:#7E94D8;cursor:pointer;font-size:12px;padding:0;line-height:1" style-hover="color:#2B50D6">✕</button></span>
+                    </sc-for>
+                    <input value="{{ tagInput }}" onInput="{{ onTagInput }}" onKeyDown="{{ onTagKey }}" placeholder="أضف وسماً…" style="flex:1;min-width:120px;border:none;outline:none;font-size:13.5px;color:#14161B;padding:4px">
+                  </div>
+                </section>
+              </div>
+
+              <!-- sticky aside -->
+              <aside style="position:sticky;top:30px;display:flex;flex-direction:column;gap:16px">
+                <!-- live preview -->
+                <div style="{{ ui.card }};padding:0;overflow:hidden">
+                  <div style="padding:14px 18px;border-bottom:1px solid #F0F1F4;font-size:12px;font-weight:600;color:#9197A0">معاينة حيّة</div>
+                  <div style="padding:18px;display:flex;gap:14px;align-items:center">
+                    <div style="{{ preview.thumbStyle }}"></div>
+                    <div style="min-width:0;flex:1">
+                      <div style="font-size:14.5px;font-weight:600;color:#14161B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ preview.name }}</div>
+                      <div style="font-size:13px;font-weight:600;color:#2B50D6;margin-top:4px;font-feature-settings:'tnum'">{{ preview.price }} <span style="font-size:11px;color:#9197A0;font-weight:500">د.أ</span></div>
+                      <div style="display:flex;gap:6px;margin-top:9px"><span style="{{ preview.statusStyle }}">{{ preview.statusLabel }}</span><span style="{{ preview.stockStyle }}"><span style="{{ preview.stockDot }}"></span>{{ preview.stockLabel }}</span></div>
+                    </div>
+                  </div>
+                  <sc-if value="{{ preview.hasColors }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:0 18px 16px;display:flex;align-items:center;gap:7px"><span style="font-size:11px;font-weight:600;color:#9197A0">الألوان</span><div style="display:flex;gap:5px;flex-wrap:wrap"><sc-for list="{{ preview.colorDots }}" as="cd" hint-placeholder-count="2"><span style="{{ cd.style }}"></span></sc-for></div></div>
+                  </sc-if>
+                </div>
+
+                <!-- publish -->
+                <div style="{{ ui.card }}">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                    <div><div style="font-size:14px;font-weight:600;color:#14161B">حالة النشر</div><div style="{{ preview.pubSubStyle }}">{{ preview.pubSub }}</div></div>
+                    <button onClick="{{ onTogglePublish }}" role="switch" style="{{ preview.switchStyle }}"><span style="{{ preview.knobStyle }}"></span></button>
+                  </div>
+                  <div style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;background:#F7F8FA;border:1px solid #EDEEF1;border-radius:11px;padding:11px 12px">
+                    <span style="font-size:13px;color:#9197A0;margin-top:1px">ⓘ</span>
+                    <p style="margin:0;font-size:12px;color:#7A7F88;line-height:1.6">المنتجات المنشورة فقط يعرضها المساعد الذكي للزبائن. المسودّات تبقى مخفية.</p>
+                  </div>
+                </div>
+
+                <!-- actions -->
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <button onClick="{{ onPublish }}" style="{{ ui.primaryBtn }};width:100%;justify-content:center" style-hover="filter:brightness(.93)">نشر المنتج</button>
+                  <button onClick="{{ onSaveDraft }}" style="width:100%;justify-content:center;display:inline-flex;align-items:center;font-size:14px;font-weight:600;color:#14161B;background:#fff;border:1px solid #DADDE2;border-radius:12px;padding:11px;cursor:pointer" style-hover="background:#F6F7F9;border-color:#C7CBD2">حفظ كمسودّة</button>
+                  <button onClick="{{ onCancelForm }}" style="width:100%;justify-content:center;display:inline-flex;align-items:center;font-size:13.5px;font-weight:500;color:#8A8F98;background:transparent;border:none;padding:8px;cursor:pointer" style-hover="color:#C0392B">إلغاء</button>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </main>
+
+    <!-- ===== SIDEBAR (right) ===== -->
+    <aside style="background:#14161B;color:#E7E8EC;display:flex;flex-direction:column;padding:24px 18px;border-inline-start:1px solid #20232B">
+      <div style="display:flex;align-items:center;gap:12px;padding:0 6px 4px">
+        <div style="{{ ui.markSq }}">◆</div>
+        <div style="min-width:0"><div style="font-size:15.5px;font-weight:600;color:#fff;letter-spacing:-.2px;white-space:nowrap">{{ brand }}</div><div style="font-size:11px;color:#7C808A;margin-top:1px">لوحة التحكم</div></div>
+      </div>
+      <div style="height:1px;background:#23262E;margin:18px 4px"></div>
+      <div style="font-size:10.5px;font-weight:600;color:#5C6068;padding:0 8px 9px">القائمة</div>
+      <nav style="display:flex;flex-direction:column;gap:3px">
+        <a style="{{ ui.navActive }}"><span style="font-size:16px">▤</span> المنتجات</a>
+        <sc-for list="{{ navSoon }}" as="n" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;font-size:14px;color:#62666F;cursor:not-allowed"><span style="font-size:15px;opacity:.7">{{ n.icon }}</span> {{ n.label }} <span style="margin-inline-start:auto;font-size:9.5px;font-weight:600;color:#9A6B12;background:rgba(226,163,58,.14);border:1px solid rgba(226,163,58,.22);border-radius:6px;padding:2px 7px">قريباً</span></div>
+        </sc-for>
+      </nav>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 10px;background:#1B1E25;border:1px solid #262A33;border-radius:13px">
+        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(150deg,#2B50D6,#1E3AA8);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff">ف</div>
+        <div style="min-width:0"><div style="font-size:13px;font-weight:600;color:#EDEEF0">فريق ماسة</div><div style="font-size:11px;color:#7C808A">مدير الكتالوج</div></div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:26px;right:50%;transform:translateX(50%);z-index:80;display:flex;align-items:center;gap:11px;background:#14161B;color:#fff;border-radius:13px;padding:13px 18px;box-shadow:0 18px 44px -16px rgba(0,0,0,.5);animation:msToast .32s cubic-bezier(.2,.9,.3,1) both">
+      <span style="{{ toast.iconStyle }}">{{ toast.glyph }}</span>
+      <span style="font-size:13.5px;font-weight:500">{{ toast.text }}</span>
+    </div>
+  </sc-if>
+
+  <!-- CONFIRM DELETE -->
+  <sc-if value="{{ confirm }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCancelDelete }}" style="position:fixed;inset:0;z-index:90;background:rgba(11,12,15,.42);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px;animation:msOv .2s ease both">
+      <div style="background:#fff;border-radius:20px;padding:26px;max-width:380px;width:100%;box-shadow:0 30px 70px -20px rgba(0,0,0,.4);animation:msPop .26s cubic-bezier(.2,.9,.3,1) both">
+        <div style="width:52px;height:52px;border-radius:15px;background:#FBEDED;border:1px solid #F2D6D6;display:flex;align-items:center;justify-content:center;font-size:22px;color:#C0392B;margin-bottom:16px">🗑</div>
+        <h3 style="margin:0 0 8px;font-size:18px;font-weight:600;color:#14161B">حذف المنتج؟</h3>
+        <p style="margin:0 0 22px;font-size:13.5px;color:#7A7F88;line-height:1.6">سيتم حذف «<span style="font-weight:600;color:#4A4E57">{{ confirm.name }}</span>» نهائياً ولن يظهر للمساعد الذكي. لا يمكن التراجع.</p>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ onConfirmDelete }}" style="flex:1;font-size:14px;font-weight:600;color:#fff;background:#C0392B;border:1px solid #A93226;border-radius:12px;padding:11px;cursor:pointer" style-hover="filter:brightness(.94)">نعم، احذف</button>
+          <button onClick="{{ onCancelDelete }}" style="flex:1;font-size:14px;font-weight:600;color:#14161B;background:#fff;border:1px solid #DADDE2;border-radius:12px;padding:11px;cursor:pointer" style-hover="background:#F6F7F9">تراجع</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:940},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#2B50D6&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;brandName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;ماسة فاشن&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showConfidence&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  COLORS = {'أحمر':'#C0392B','أزرق':'#2A52CC','أسود':'#1A1C22','أبيض':'#FFFFFF','أخضر':'#1E7A52','بيج':'#CDBA9E','رمادي':'#9097A1','وردي':'#D98AAE','بنفسجي':'#7A4FB0','بني':'#7A5236'};
+  COLOR_OPTIONS = ['أحمر','أزرق','أسود','أبيض','أخضر','بيج','رمادي','وردي','بنفسجي','بني'];
+  SLEEVES = ['كم واسع','كم ضيق','كم كلوش','كم عادي','بدون كم'];
+  FABRICS = ['كريب','نقدة','جورجيت','مخمل','قطن','حرير صناعي'];
+  OCCASIONS = ['يومي','مناسبات','سواريه','صلاة','عمل'];
+  EMBROIDERY = ['بدون','تطريز خفيف','تطريز كثيف','حجر / سواروفسكي','شراشيب','دانتيل'];
+  SIZE_CATALOG = [
+    {id:'s1',no:'1',from:60,to:90},
+    {id:'s2',no:'2',from:90,to:120},
+    {id:'s3',no:'3',from:120,to:150},
+    {id:'s4',no:'4',from:150,to:180},
+  ];
+
+  makeProducts(){
+    return [
+      {id:1,name:'عباية كلوش مطرّزة بالذهبي',price:'38.500',colors:['أسود','بني'],sizes:['s1','s2','s3'],maxWeight:'150',stock:'in',status:'published',tags:['مطرزة','كلوش','مناسبات']},
+      {id:2,name:'عباية كاجوال سادة بحزام',price:'24.000',colors:['أزرق','رمادي','أسود'],sizes:['s1','s2'],maxWeight:'120',stock:'in',status:'published',tags:['يومي','كاجوال']},
+      {id:3,name:'عباية فرنسي بأزرار أمامية',price:'45.750',colors:['بيج','أبيض'],sizes:['s2','s3'],maxWeight:'150',stock:'out',status:'draft',tags:['فرنسي']},
+      {id:4,name:'عباية صلاة قطعتين',price:'19.990',colors:['رمادي','أسود'],sizes:['s1','s2','s3','s4'],maxWeight:'180',stock:'in',status:'published',tags:['صلاة','قطعتين']},
+      {id:5,name:'عباية سواريه مخمل مطرّزة',price:'62.000',colors:['بنفسجي','أحمر','أسود'],sizes:['s1','s2'],maxWeight:'120',stock:'in',status:'draft',tags:['سواريه','مخمل']},
+      {id:6,name:'عباية ربيعية خفيفة',price:'29.500',colors:['وردي','بيج'],sizes:['s1','s2'],maxWeight:'120',stock:'soon',status:'draft',tags:['ربيعي']},
+      {id:7,name:'عباية كم واسع بتطريز جانبي',price:'41.000',colors:['أخضر','أسود','بيج'],sizes:['s2','s3'],maxWeight:'150',stock:'in',status:'published',tags:['مطرزة','كم واسع']},
+      {id:8,name:'عباية يومية كلاسيك',price:'22.250',colors:['أبيض','رمادي'],sizes:['s1','s2','s3'],maxWeight:'150',stock:'out',status:'published',tags:['يومي','كلاسيك']},
+    ];
+  }
+  blankForm(){
+    return {name:'',description:'',price:'',sizes:['s1','s2'],maxWeight:'',shoulder:'',armpit:'',length:'',stock:'in',
+      sleeve:'',fabric:'',occasion:'',embroidery:'',tags:[],published:false,
+      images:[{id:1,color:'أسود',analyzed:true},{id:2,color:'أحمر',analyzed:true},{id:3,color:'',analyzed:false}]};
+  }
+  defaultAi(){
+    return [
+      {label:'نوع الكم',value:'كم واسع',confidence:0.90,target:'sleeve'},
+      {label:'القماش',value:'كريب',confidence:0.74,target:'fabric'},
+      {label:'المناسبة',value:'مناسبات',confidence:0.88,target:'occasion'},
+      {label:'التطريز',value:'تطريز خفيف',confidence:0.69,target:'embroidery'},
+    ];
+  }
+
+  state = {
+    screen:'list', search:'', filterColor:'all', filterStatus:'all', filterStock:'all',
+    products:this.makeProducts(), toast:null, confirm:null, editingId:null,
+    showErrors:false, aiApproved:false, ai:this.defaultAi(), tagInput:'', form:this.blankForm(),
+  };
+
+  toast(text, kind){
+    const map={ok:{glyph:'✓',bg:'#1FA463'},err:{glyph:'!',bg:'#D85656'},info:{glyph:'ⓘ',bg:'#2B50D6'}};
+    this.setState({toast:{text, ...(map[kind]||map.ok)}});
+    clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:null}),2800);
+  }
+  patchForm(k,v){ this.setState(s=>({form:{...s.form,[k]:v}})); }
+
+  setScreen=(s)=>this.setState({screen:s, showErrors:false});
+  onAddProduct=()=>this.setState({screen:'form',editingId:null,form:this.blankForm(),ai:this.defaultAi(),aiApproved:false,showErrors:false});
+  onCancelForm=()=>this.setState({screen:'list',showErrors:false});
+  onRetry=()=>{ this.setState({screen:'loading'}); setTimeout(()=>this.setState({screen:'list'}),1100); };
+
+  openForm=(p)=>this.setState({screen:'form',editingId:p.id,aiApproved:false,showErrors:false,ai:this.defaultAi(),
+    form:{...this.blankForm(),name:p.name,price:p.price,stock:p.stock,published:p.status==='published',tags:[...p.tags],
+      sizes:[...(p.sizes||['s1','s2'])], maxWeight:p.maxWeight||'',
+      images:((p.colors&&p.colors.length)?p.colors:['أسود']).map((c,i)=>({id:i+1,color:c,analyzed:true}))}});
+
+  onSearch=(e)=>this.setState({search:e.target.value});
+  onFilterColor=(e)=>this.setState({filterColor:e.target.value});
+  onFilterStatus=(e)=>this.setState({filterStatus:e.target.value});
+  onFilterStock=(e)=>this.setState({filterStock:e.target.value});
+
+  toggleStatus=(id)=>{ let np=''; this.setState(s=>({products:s.products.map(p=>{ if(p.id===id){np=p.status==='published'?'draft':'published';return {...p,status:np};} return p;})}), ()=>this.toast(np==='published'?'تم نشر المنتج':'أصبح المنتج مسودّة','info')); };
+  askDelete=(p)=>this.setState({confirm:{id:p.id,name:p.name}});
+  onCancelDelete=()=>this.setState({confirm:null});
+  onConfirmDelete=()=>{ const c=this.state.confirm; if(!c)return; this.setState(s=>({products:s.products.filter(p=>p.id!==c.id),confirm:null}), ()=>this.toast('تم حذف المنتج','ok')); };
+
+  onName=(e)=>this.patchForm('name',e.target.value);
+  onDescription=(e)=>this.patchForm('description',e.target.value);
+  onPrice=(e)=>this.patchForm('price',e.target.value);
+  onMaxWeight=(e)=>this.patchForm('maxWeight',e.target.value);
+  onShoulder=(e)=>this.patchForm('shoulder',e.target.value);
+  onArmpit=(e)=>this.patchForm('armpit',e.target.value);
+  onLength=(e)=>this.patchForm('length',e.target.value);
+  onSleeve=(e)=>this.patchForm('sleeve',e.target.value);
+  onFabric=(e)=>this.patchForm('fabric',e.target.value);
+  onOccasion=(e)=>this.patchForm('occasion',e.target.value);
+  onEmbroidery=(e)=>this.patchForm('embroidery',e.target.value);
+  toggleSize=(id)=>this.setState(s=>{ const has=s.form.sizes.includes(id); return {form:{...s.form,sizes:has?s.form.sizes.filter(x=>x!==id):[...s.form.sizes,id]}}; });
+  pickStock=(v)=>this.patchForm('stock',v);
+  onTogglePublish=()=>this.patchForm('published',!this.state.form.published);
+
+  onTagInput=(e)=>this.setState({tagInput:e.target.value});
+  onTagKey=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); const v=(this.state.tagInput||'').trim(); if(v && !this.state.form.tags.includes(v)){ this.patchForm('tags',[...this.state.form.tags,v]); } this.setState({tagInput:''}); } };
+  removeTag=(t)=>this.patchForm('tags',this.state.form.tags.filter(x=>x!==t));
+
+  onAddImage=()=>{ const id=Date.now(); this.setState(s=>({form:{...s.form,images:[...s.form.images,{id,color:'',analyzed:false}]}})); setTimeout(()=>this.setState(s=>({form:{...s.form,images:s.form.images.map(im=>im.id===id?{...im,analyzed:true}:im)}})),1400); };
+  setImgColor=(id,v)=>this.setState(s=>({form:{...s.form,images:s.form.images.map(im=>im.id===id?{...im,color:v}:im)}}));
+  setMain=(id)=>this.setState(s=>{ const im=s.form.images.find(x=>x.id===id); const rest=s.form.images.filter(x=>x.id!==id); return {form:{...s.form,images:[im,...rest]}}; });
+  removeImage=(id)=>this.setState(s=>({form:{...s.form,images:s.form.images.filter(x=>x.id!==id)}}));
+
+  onAiEdit=(i,v)=>this.setState(s=>({ai:s.ai.map((a,idx)=>idx===i?{...a,value:v}:a)}));
+  onApproveAll=()=>{ const patch={}; this.state.ai.forEach(a=>{ patch[a.target]=a.value; }); this.setState(s=>({form:{...s.form,...patch},aiApproved:true}), ()=>this.toast('تم اعتماد اقتراحات الذكاء الاصطناعي','info')); };
+
+  validate(){ const f=this.state.form; return { name:!f.name.trim(), price:!String(f.price).trim()||isNaN(parseFloat(f.price)), images:f.images.length===0 }; }
+  commit(publish){
+    const e=this.validate();
+    if(e.name||e.price||e.images){ this.setState({showErrors:true}); this.toast('يرجى تعبئة الحقول المطلوبة','err'); return; }
+    const f=this.state.form; const status=publish?'published':'draft';
+    const colors=[...new Set(f.images.map(im=>im.color).filter(Boolean))];
+    this.setState(s=>{
+      let products;
+      const fields={name:f.name,price:f.price,colors,sizes:f.sizes,maxWeight:f.maxWeight,stock:f.stock,tags:f.tags,status};
+      if(s.editingId){ products=s.products.map(p=>p.id===s.editingId?{...p,...fields}:p); }
+      else { const nid=Math.max(0,...s.products.map(p=>p.id))+1; products=[{id:nid,...fields},...s.products]; }
+      return {products,screen:'list',showErrors:false};
+    }, ()=>this.toast(publish?'تم نشر المنتج بنجاح':'تم حفظ المسودّة','ok'));
+  }
+  onPublish=()=>this.commit(true);
+  onSaveDraft=()=>this.commit(false);
+
+  renderVals(){
+    const s=this.state, f=s.form;
+    const accent=this.props.accent ?? '#2B50D6';
+    const showConf=this.props.showConfidence ?? true;
+    const brand=this.props.brandName ?? 'ماسة فاشن';
+    const tint=(h,p)=>`color-mix(in srgb, ${h} ${p}%, #fff)`;
+    const accentDark=`color-mix(in srgb, ${accent}, #000 16%)`;
+
+    const STOCK={in:{l:'متوفر',c:'#1B7A4E',bg:'#EAF6EF',bd:'#CDEBD9',dot:'#1FA463'},out:{l:'غير متوفر',c:'#B23B3B',bg:'#FBEDED',bd:'#F2D6D6',dot:'#D85656'},soon:{l:'قريباً',c:'#9A6B12',bg:'#FBF4E6',bd:'#F0E2C2',dot:'#E2A33A'}};
+    const badge='display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;border-radius:20px;padding:4px 11px;white-space:nowrap';
+    const stockStyleStr=(k)=>{const m=STOCK[k];return `${badge};color:${m.c};background:${m.bg};border:1px solid ${m.bd}`;};
+    const dotStr=(c)=>`width:6px;height:6px;border-radius:50%;background:${c}`;
+    const statusStyleStr=(st)=> st==='published'
+      ? `${badge};color:${accentDark};background:${tint(accent,12)};border:1px solid ${tint(accent,32)}`
+      : `${badge};color:#6B7079;background:#F1F2F5;border:1px solid #E6E8EC`;
+    const colorHex=(c)=>this.COLORS[c]||'#9097A1';
+    const thumb=(hex)=>`width:42px;height:50px;border-radius:9px;background:linear-gradient(155deg, ${tint(hex,30)}, #fff 80%);border:1px solid #ECEDF1;display:flex;align-items:center;justify-content:center`;
+    const dotMini=(hex)=>`width:13px;height:13px;border-radius:50%;background:${hex};border:1px solid ${hex==='#FFFFFF'?'#DADDE2':'rgba(0,0,0,.14)'};display:inline-block`;
+
+    const list=s.products.filter(p=>{
+      if(s.search && !p.name.includes(s.search)) return false;
+      if(s.filterColor!=='all' && !(p.colors||[]).includes(s.filterColor)) return false;
+      if(s.filterStatus!=='all' && p.status!==s.filterStatus) return false;
+      if(s.filterStock!=='all' && p.stock!==s.filterStock) return false;
+      return true;
+    });
+    const products=list.map(p=>{
+      const cols=p.colors||[];
+      const firstHex=colorHex(cols[0]||'أسود');
+      return {...p,
+        thumbStyle:thumb(firstHex),
+        colorDots:cols.slice(0,5).map(c=>({style:dotMini(colorHex(c)),name:c})),
+        colorMore: cols.length>5? '+'+(cols.length-5):'',
+        tagsLine:(p.tags||[]).map(t=>'#'+t).join('  '),
+        stockLabel:STOCK[p.stock].l, stockStyle:stockStyleStr(p.stock), stockDot:dotStr(STOCK[p.stock].dot),
+        statusLabel:p.status==='published'?'منشور':'مسودّة', statusStyle:statusStyleStr(p.status),
+        toggleGlyph:p.status==='published'?'⤓':'⤒', toggleTitle:p.status==='published'?'إلغاء النشر':'نشر',
+        onEdit:()=>this.openForm(p), onDelete:()=>this.askDelete(p), onToggleStatus:()=>this.toggleStatus(p.id),
+      };
+    });
+
+    const ui={
+      primaryBtn:`display:inline-flex;align-items:center;gap:8px;white-space:nowrap;flex:none;font-size:14px;font-weight:600;color:#fff;background:${accent};border:1px solid ${accentDark};border-radius:12px;padding:11px 19px;cursor:pointer;box-shadow:0 6px 18px -8px ${accent}`,
+      select:`font-size:13.5px;font-weight:500;color:#3A3E47;background:#fff;border:1px solid #E2E4E9;border-radius:12px;padding:10px 30px 10px 13px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23A2A7AF' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 13px center`,
+      selectSm:`width:100%;font-size:12px;font-weight:500;color:#3A3E47;background:#fff;border:1px solid #E2E4E9;border-radius:9px;padding:7px 24px 7px 10px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23A2A7AF' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 10px center`,
+      iconBtn:`width:30px;height:30px;border-radius:9px;border:1px solid #E6E8EC;background:#fff;color:#7A7F88;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;justify-content:center;transition:all .12s`,
+      imgBtn:`width:26px;height:26px;border-radius:7px;border:none;background:rgba(20,22,27,.62);color:#fff;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)`,
+      markSq:`width:36px;height:36px;border-radius:10px;background:${accent};display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;box-shadow:0 6px 16px -6px ${accent}`,
+      navActive:`display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;font-size:14px;font-weight:600;color:#fff;background:color-mix(in srgb, ${accent} 22%, #14161B);box-shadow:inset -3px 0 0 ${accent};cursor:default`,
+      card:'background:#fff;border:1px solid #ECEDF1;border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(16,18,22,.04),0 12px 34px -28px rgba(16,18,22,.26)',
+      aiCard:`background:${tint(accent,5)};border:1px solid ${tint(accent,26)};border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(16,18,22,.04)`,
+      stepNo:`flex:none;width:24px;height:24px;border-radius:8px;background:${tint(accent,12)};color:${accentDark};font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center`,
+      h3:'margin:0;font-size:16px;font-weight:600;color:#14161B',
+      hint:'margin:8px 0 0;font-size:12.5px;color:#8A8F98;line-height:1.6',
+      label:'display:block;font-size:13px;font-weight:600;color:#3A3E47;margin-bottom:8px',
+      input:'width:100%;font-size:14px;color:#14161B;background:#fff;border:1px solid #E2E4E9;border-radius:11px;padding:11px 13px;outline:none',
+      req:'font-size:10.5px;font-weight:600;color:#9A6B12;background:#FBF4E6;border:1px solid #F0E2C2;border-radius:6px;padding:2px 7px',
+      opt:'font-size:10px;font-weight:600;color:#9197A0;background:#F1F2F5;border-radius:5px;padding:2px 7px',
+      errMsg:'font-size:12px;font-weight:500;color:#C0392B;margin-top:7px;display:flex;align-items:center;gap:5px',
+      aiTag:`font-size:10.5px;font-weight:600;color:${accentDark};background:${tint(accent,16)};border:1px solid ${tint(accent,34)};border-radius:6px;padding:2px 8px`,
+      approveBtn:`display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#fff;background:${accent};border:1px solid ${accentDark};border-radius:10px;padding:9px 15px;cursor:pointer`,
+      suffixWrap:'display:flex;align-items:center;background:#fff;border:1px solid #E2E4E9;border-radius:11px;overflow:hidden',
+      suffixInput:"flex:1;min-width:0;font-size:14px;font-weight:600;color:#14161B;border:none;outline:none;padding:11px 13px;font-feature-settings:'tnum'",
+      suffixUnit:'font-size:12px;font-weight:600;color:#7A7F88;padding:0 12px;border-inline-start:1px solid #EBECEF;align-self:stretch;display:flex;align-items:center',
+    };
+
+    const v=this.validate();
+    const errName=s.showErrors&&v.name, errPrice=s.showErrors&&v.price, errImages=s.showErrors&&v.images;
+    const inp='width:100%;font-size:14px;color:#14161B;background:#fff;border-radius:11px;padding:11px 13px;outline:none';
+
+    const chipBase='font-size:13px;font-weight:600;border-radius:10px;padding:9px 0;flex:1;cursor:pointer;text-align:center;transition:all .12s';
+    const stockChips=[['in','متوفر'],['out','غير متوفر'],['soon','قريباً']].map(([v2,l])=>({label:l,onPick:()=>this.pickStock(v2),
+      style: f.stock===v2 ? `${chipBase};color:${accentDark};background:${tint(accent,12)};border:1px solid ${tint(accent,40)}` : `${chipBase};color:#6B7079;background:#fff;border:1px solid #E2E4E9`}));
+
+    const sizeCardBase='display:block;width:100%;text-align:right;border-radius:12px;padding:11px 13px;cursor:pointer;transition:all .12s';
+    const sizeChips=this.SIZE_CATALOG.map(sz=>{ const active=f.sizes.includes(sz.id); return {
+      no:sz.no, range:`${sz.from} – ${sz.to} كغ`, onToggle:()=>this.toggleSize(sz.id),
+      style: active?`${sizeCardBase};background:${tint(accent,9)};border:1.5px solid ${tint(accent,46)};color:${accentDark}`:`${sizeCardBase};background:#fff;border:1.5px solid #E6E8EC;color:#3A3E47`,
+      check: active?'✓':'',
+      checkStyle: active?`flex:none;width:19px;height:19px;border-radius:50%;background:${accent};color:#fff;font-size:11px;display:inline-flex;align-items:center;justify-content:center`:'flex:none;width:19px;height:19px;border-radius:50%;border:1.5px solid #D4D7DD;display:inline-block',
+    };});
+
+    const ai=s.ai.map((a,i)=>{ const pct=Math.round(a.confidence*100); const high=a.confidence>=.85; const mid=a.confidence>=.7;
+      const cc=high?'#1B7A4E':mid?'#9A6B12':'#B23B3B'; const cbg=high?'#EAF6EF':mid?'#FBF4E6':'#FBEDED';
+      return {label:a.label,value:a.value,confPct:pct,onInput:(e)=>this.onAiEdit(i,e.target.value),
+        confStyle:`font-size:10.5px;font-weight:600;color:${cc};background:${cbg};border-radius:6px;padding:1px 7px`,
+        barStyle:`height:100%;width:${pct}%;background:${cc};border-radius:3px`}; });
+
+    const gallery=f.images.map((im,i)=>{ const hex=im.color?colorHex(im.color):'#C7CBD2'; return {
+      thumbStyle:`position:relative;width:120px;height:142px;border-radius:14px;overflow:hidden;background:linear-gradient(160deg, ${tint(hex,62)}, ${tint(hex,22)});border:1px solid #E6E8EC`,
+      isMain:i===0, canMain:i!==0, onMain:()=>this.setMain(im.id), onRemove:()=>this.removeImage(im.id),
+      color:im.color||'', onColor:(e)=>this.setImgColor(im.id,e.target.value),
+      swatchStyle:`width:12px;height:12px;border-radius:50%;background:${hex};border:1px solid ${im.color==='أبيض'?'#DADDE2':'rgba(0,0,0,.16)'};display:inline-block`,
+      analyzeLabel: im.analyzed?'تم التحليل':'جارٍ التحليل…',
+      analyzeStyle: im.analyzed?'display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#1B7A4E':'display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#9A6B12',
+      analyzeDot: im.analyzed?'width:5px;height:5px;border-radius:50%;background:#1FA463':'width:8px;height:8px;border:1.5px solid #E2C98A;border-top-color:#9A6B12;border-radius:50%;display:inline-block;animation:msSpin .7s linear infinite',
+    };});
+
+    const tagChips=f.tags.map(t=>({label:t,onRemove:()=>this.removeTag(t)}));
+
+    const pvFirstHex=colorHex((f.images[0]&&f.images[0].color)||'أسود');
+    const pvCols=[...new Set(f.images.map(im=>im.color).filter(Boolean))];
+    const preview={
+      name:f.name||'اسم المنتج', price:f.price||'0.000',
+      thumbStyle:`flex:none;width:54px;height:64px;border-radius:11px;background:linear-gradient(155deg, ${tint(pvFirstHex,32)}, #fff 82%);border:1px solid #ECEDF1`,
+      statusLabel:f.published?'منشور':'مسودّة', statusStyle:statusStyleStr(f.published?'published':'draft'),
+      stockLabel:STOCK[f.stock].l, stockStyle:stockStyleStr(f.stock), stockDot:dotStr(STOCK[f.stock].dot),
+      hasColors:pvCols.length>0, colorDots:pvCols.slice(0,7).map(c=>({style:dotMini(colorHex(c))})),
+      pubSub:f.published?'مرئي للزبائن':'مخفي — مسودّة',
+      pubSubStyle:`font-size:12px;font-weight:500;margin-top:3px;color:${f.published?accentDark:'#9197A0'}`,
+      switchStyle:`flex:none;width:46px;height:27px;border-radius:20px;border:none;cursor:pointer;position:relative;transition:background .18s;background:${f.published?accent:'#D4D7DD'}`,
+      knobStyle:`position:absolute;top:3px;${f.published?'left:3px':'right:3px'};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.22);transition:all .18s`,
+    };
+
+    return {
+      brand, ui, showConf,
+      screens:[
+        {key:'list',label:'القائمة'},{key:'empty',label:'فارغة'},{key:'loading',label:'تحميل'},{key:'error',label:'خطأ'},{key:'form',label:'إضافة منتج'}
+      ].map(o=>({label:o.label,onClick:()=>this.setScreen(o.key),
+        style: s.screen===o.key
+          ? 'font-size:12px;font-weight:600;color:#fff;background:#2B50D6;border:none;border-radius:8px;padding:6px 13px;cursor:pointer'
+          : 'font-size:12px;font-weight:500;color:#8A8F98;background:transparent;border:none;border-radius:8px;padding:6px 13px;cursor:pointer'})),
+      navSoon:[{icon:'🛍',label:'الطلبات'},{icon:'💬',label:'المحادثات'},{icon:'⚙',label:'الإعدادات'}],
+
+      isProducts:['list','empty','loading','error'].includes(s.screen),
+      showToolbar:['list','loading'].includes(s.screen),
+      isList:s.screen==='list', isEmpty:s.screen==='empty', isLoading:s.screen==='loading', isError:s.screen==='error', isForm:s.screen==='form',
+      products, totalCount:s.products.length, skeleton:[1,2,3,4,5,6],
+
+      search:s.search, filterColor:s.filterColor, filterStatus:s.filterStatus, filterStock:s.filterStock,
+      onSearch:this.onSearch, onFilterColor:this.onFilterColor, onFilterStatus:this.onFilterStatus, onFilterStock:this.onFilterStock,
+      colorFilterOptions:[{value:'all',label:'كل الألوان'},...this.COLOR_OPTIONS.map(c=>({value:c,label:c}))],
+      statusFilterOptions:[{value:'all',label:'كل الحالات'},{value:'published',label:'منشور'},{value:'draft',label:'مسودّة'}],
+      stockFilterOptions:[{value:'all',label:'كل المخزون'},{value:'in',label:'متوفر'},{value:'out',label:'غير متوفر'},{value:'soon',label:'قريباً'}],
+      onAddProduct:this.onAddProduct, onRetry:this.onRetry,
+
+      formTitle:s.editingId?'تعديل منتج':'إضافة منتج جديد',
+      form:{
+        name:f.name, description:f.description, price:f.price, maxWeight:f.maxWeight, shoulder:f.shoulder, armpit:f.armpit, length:f.length,
+        sleeve:f.sleeve, fabric:f.fabric, occasion:f.occasion, embroidery:f.embroidery,
+        nameStyle:inp+`;border:1px solid ${errName?'#E3A6A6':'#E2E4E9'}`,
+        priceBorder: errPrice?'#E3A6A6':'#E2E4E9',
+      },
+      errName, errPrice, errImages,
+      onName:this.onName, onDescription:this.onDescription, onPrice:this.onPrice,
+      onMaxWeight:this.onMaxWeight, onShoulder:this.onShoulder, onArmpit:this.onArmpit, onLength:this.onLength,
+      onSleeve:this.onSleeve, onFabric:this.onFabric, onOccasion:this.onOccasion, onEmbroidery:this.onEmbroidery,
+      colorOptions:this.COLOR_OPTIONS, sleeveOptions:this.SLEEVES, fabricOptions:this.FABRICS, occasionOptions:this.OCCASIONS, embroideryOptions:this.EMBROIDERY,
+      stockChips, sizeChips,
+      ai, aiApproved:s.aiApproved, onApproveAll:this.onApproveAll,
+      gallery, onAddImage:this.onAddImage,
+      tagChips, tagInput:s.tagInput, onTagInput:this.onTagInput, onTagKey:this.onTagKey,
+      preview, onTogglePublish:this.onTogglePublish,
+      onPublish:this.onPublish, onSaveDraft:this.onSaveDraft, onCancelForm:this.onCancelForm,
+
+      toast: s.toast && {text:s.toast.text, glyph:s.toast.glyph,
+        iconStyle:`flex:none;width:24px;height:24px;border-radius:50%;background:${s.toast.bg};display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff`},
+      confirm:s.confirm, onCancelDelete:this.onCancelDelete, onConfirmDelete:this.onConfirmDelete,
+    };
+  }
+}
+</script>
+</body>
+</html>
