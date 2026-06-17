@@ -22,6 +22,11 @@ type AuthResponse = {
  * `Bearer` header so protected calls (e.g. GET /auth/me) are authenticated.
  */
 const authClient = kyInstance.extend({
+  // The shared kyInstance is built by @refinedev/rest with `throwHttpErrors:
+  // false` (its data provider handles HTTP errors itself). For auth we MUST
+  // re-enable throwing, otherwise a 401/409 response is read as a success and a
+  // failed login still "authenticates". Override it here.
+  throwHttpErrors: true,
   hooks: {
     beforeRequest: [
       (request) => {
@@ -66,6 +71,10 @@ export const authProvider: AuthProvider = {
       const { accessToken } = await authClient
         .post("auth/login", { json: { email, password } })
         .json<AuthResponse>();
+      // Defensive: a 2xx without a token must never count as a login.
+      if (!accessToken) {
+        throw new Error("Login response did not include an access token");
+      }
       localStorage.setItem(TOKEN_KEY, accessToken);
       return { success: true, redirectTo: "/" };
     } catch (error) {
@@ -84,6 +93,10 @@ export const authProvider: AuthProvider = {
       const { accessToken } = await authClient
         .post("auth/register", { json: { name, email, password } })
         .json<AuthResponse>();
+      // Defensive: a 2xx without a token must never count as a registration.
+      if (!accessToken) {
+        throw new Error("Register response did not include an access token");
+      }
       localStorage.setItem(TOKEN_KEY, accessToken);
       return { success: true, redirectTo: "/" };
     } catch (error) {
