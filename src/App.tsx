@@ -87,7 +87,7 @@ function App() {
                 </Route>
               </Routes>
 
-              <Toaster />
+              <Toaster position="bottom-center" />
               <RefineKbar />
               <UnsavedChangesNotifier />
               <DocumentTitleHandler />
