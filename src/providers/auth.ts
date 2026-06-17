@@ -151,3 +151,4 @@ export const authProvider: AuthProvider = {
     return { error };
   },
 };
+
