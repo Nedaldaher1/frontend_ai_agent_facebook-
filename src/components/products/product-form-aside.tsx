@@ -51,7 +51,11 @@ export function ProductFormAside({
           معاينة حيّة
         </div>
         <div className="flex items-center gap-3.5 p-[18px]">
-          <ProductThumb color={firstColor} className="h-16 w-[54px] rounded-[11px]" />
+          <ProductThumb
+            color={firstColor}
+            url={values.images[0]?.url}
+            className="h-16 w-[54px] rounded-[11px]"
+          />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[14.5px] font-semibold text-[#14161B]">
               {values.name || "اسم المنتج"}

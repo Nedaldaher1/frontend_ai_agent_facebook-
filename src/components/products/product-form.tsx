@@ -96,7 +96,9 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
       url = URL.createObjectURL(file);
       objectUrls.current.push(url);
     }
-    const next: ProductImage = { id, url, color: "", analyzed: false };
+    // Hold the File until Save; the data provider uploads it then (create has
+    // no product id yet, and edit batches gallery changes on Save).
+    const next: ProductImage = { id, url, file, color: "", analyzed: false };
     setValue("images", [...getValues("images"), next], { shouldDirty: true });
     // Simulate Vision finishing its analysis for this variant.
     window.setTimeout(() => {
