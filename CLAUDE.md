@@ -182,7 +182,19 @@ The brand and its customers are Arabic-speaking. The admin must be **right-to-le
 
 ---
 
-## 8. Git workflow (CRITICAL — every change must be committed)
+## 8. Git workflow & project organization (CRITICAL)
+
+### 8.1 Start of work — confirm the branch first (YOU MUST)
+
+> **YOU MUST ask me which branch to work on before you start any work** — every new feature, fix, refactor, or edit. Do not start changing files until the target branch is decided.
+
+Protocol at the start of every task:
+1. **Ask me for the branch name** for this feature/change *before doing anything else* (e.g. `feature/MASA-123-product-review-flow`).
+2. **If I give you a branch name**, check it out — creating it from `dev` if it does not exist — and do all the work there. Feature branches still follow the naming convention in §8.2 rule 3.
+3. **If I do not give a branch name** (or tell you to skip the question), do the work on the **`dev`** branch. Never commit feature work directly to `main`/`master`.
+4. **Before the first commit, confirm you are on the intended branch** with `git branch --show-current`, so changes do not land on the wrong branch.
+
+### 8.2 Commit every change (YOU MUST)
 
 > **YOU MUST commit every change you make.** Do not leave the working tree dirty when you finish a turn. A Stop hook (`.claude/hooks/ensure-committed.sh`) enforces this: if there are uncommitted changes when you try to finish, it will block you and ask you to commit. The block clears automatically once everything is committed.
 
@@ -192,7 +204,7 @@ Rules:
    - types: `feat`, `fix`, `refactor`, `style`, `docs`, `test`, `chore`, `build`, `ci`
    - reference the active Linear ticket: `feat(products): add publish toggle (MASA-123)`
    - imperative mood, English, summary under ~72 chars.
-3. **Branch naming:** `feature/<LINEAR-ID>-short-description` (e.g. `feature/MASA-123-product-review-flow`). Replace `MASA` with this project's actual Linear prefix if it differs.
+3. **Branch naming:** feature work uses `feature/<LINEAR-ID>-short-description` (e.g. `feature/MASA-123-product-review-flow`); replace `MASA` with this project's actual Linear prefix if it differs. When no branch is given, default to `dev` per §8.1.
 4. **Never `git push`** and never `git reset --hard` without the user explicitly asking. (`git push` is denied in `.claude/settings.json`.)
 5. Use the **`/commit`** slash command to do all of the above quickly.
 6. If the user explicitly says *don't commit yet*, respect that — say so and stop instead of committing. (You can temporarily disable hooks with `"disableAllHooks": true` in settings if truly needed.)
@@ -207,6 +219,7 @@ Rules:
 - Don't add dependencies casually. shadcn primitives + Refine + lucide cover most needs.
 
 ## 10. Definition of done (before you finish a task)
+- [ ] Branch confirmed at the start of the task (feature branch I named, or `dev` by default — §8.1).
 - [ ] Type-checks (`bun run build` or `tsc --noEmit`).
 - [ ] RTL-correct (logical classes, Arabic UI strings, flipped directional icons).
 - [ ] UI built from shadcn/ui only.
