@@ -25,6 +25,7 @@ import type {
   GetListResponse,
   GetOneParams,
   GetOneResponse,
+  HttpError,
   UpdateParams,
   UpdateResponse,
 } from "@refinedev/core";
@@ -92,14 +93,31 @@ const findProductById = async (id: string): Promise<ProductDto | null> => {
   return null;
 };
 
-const uploadImages = (id: string, files: File[]): Promise<ProductDto> => {
+const uploadImages = async (
+  id: string,
+  files: File[],
+): Promise<ProductDto> => {
   const fd = new FormData();
   for (const file of files) fd.append("files", file);
-  // No Content-Type header — the browser sets the multipart boundary.
-  return apiFetch<ProductDto>(`products/${id}/images`, {
-    method: "POST",
-    body: fd,
-  });
+  try {
+    // No Content-Type header — the browser sets the multipart boundary.
+    return await apiFetch<ProductDto>(`products/${id}/images`, {
+      method: "POST",
+      body: fd,
+    });
+  } catch (error) {
+    // Turn the upload-specific HTTP statuses into clear Arabic messages.
+    const status = (error as HttpError)?.statusCode;
+    const message =
+      status === 415
+        ? "صيغة صورة غير مدعومة — استخدم JPG أو PNG أو WebP"
+        : status === 413
+          ? "حجم الصورة يتجاوز الحد المسموح (5 ميغابايت)"
+          : status === 400
+            ? "لم يتم اختيار صورة صالحة"
+            : ((error as HttpError)?.message ?? "تعذّر رفع الصور");
+    throw Object.assign(new Error(message), { statusCode: status ?? 0 });
+  }
 };
 
 const setPublished = (id: string, isPublished: boolean): Promise<ProductDto> =>
