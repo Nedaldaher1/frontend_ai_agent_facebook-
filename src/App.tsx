@@ -26,6 +26,11 @@ import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import { ProductCreate, ProductEdit, ProductList } from "./pages/products";
+import {
+  KnowledgeCreate,
+  KnowledgeEdit,
+  KnowledgeList,
+} from "./pages/knowledge";
 
 function App() {
   return (
@@ -70,6 +75,11 @@ function App() {
                     <Route index element={<ProductList />} />
                     <Route path="create" element={<ProductCreate />} />
                     <Route path="edit/:id" element={<ProductEdit />} />
+                  </Route>
+                  <Route path="/knowledge">
+                    <Route index element={<KnowledgeList />} />
+                    <Route path="create" element={<KnowledgeCreate />} />
+                    <Route path="edit/:id" element={<KnowledgeEdit />} />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>

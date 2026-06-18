@@ -8,7 +8,13 @@
  */
 
 import type { ResourceProps } from "@refinedev/core";
-import { LayoutGrid, MessageCircle, Settings, ShoppingBag } from "lucide-react";
+import {
+  LayoutGrid,
+  Library,
+  MessageCircle,
+  Settings,
+  ShoppingBag,
+} from "lucide-react";
 
 export const resources: ResourceProps[] = [
   {
@@ -19,6 +25,17 @@ export const resources: ResourceProps[] = [
     meta: {
       label: "المنتجات",
       icon: <LayoutGrid className="size-4" />,
+    },
+  },
+  {
+    name: "knowledge",
+    list: "/knowledge",
+    create: "/knowledge/create",
+    edit: "/knowledge/edit/:id",
+    meta: {
+      label: "قاعدة المعرفة",
+      // Library glyph mirrored for RTL.
+      icon: <Library className="size-4 rtl:-scale-x-100" />,
     },
   },
   // --- Phase 2+ placeholders (not yet routed) ---
