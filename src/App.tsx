@@ -20,6 +20,7 @@ import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
 import { resources } from "./config/resources";
 import { authProvider } from "./providers/auth";
 import { dataProvider } from "./providers/data";
+import { knowledgeDataProvider } from "./providers/knowledge-data";
 
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
@@ -33,7 +34,10 @@ function App() {
         <ThemeProvider>
           <DevtoolsProvider>
             <Refine
-              dataProvider={dataProvider}
+              dataProvider={{
+                default: dataProvider,
+                knowledge: knowledgeDataProvider,
+              }}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
               authProvider={authProvider}
