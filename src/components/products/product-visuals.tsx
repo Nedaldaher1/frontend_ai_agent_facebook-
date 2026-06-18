@@ -27,18 +27,33 @@ const badgeClass =
   "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-[11px] py-1 text-[11.5px] font-semibold";
 
 /**
- * A product thumbnail rendered as a soft color-tinted gradient (the catalog
- * has no real imagery in the prototype). Size is passed via `className`.
+ * A product thumbnail. Shows the real primary image when a `url` is given
+ * (`imageUrls[0]`), otherwise falls back to a soft color-tinted gradient
+ * placeholder. Size is passed via `className`.
  */
 export function ProductThumb({
   color,
+  url,
   className,
   showLabel = false,
 }: {
   color?: string | null;
+  url?: string | null;
   className?: string;
   showLabel?: boolean;
 }) {
+  if (url) {
+    return (
+      <div
+        className={cn(
+          "shrink-0 overflow-hidden rounded-[9px] border border-[#ECEDF1]",
+          className,
+        )}
+      >
+        <img src={url} alt="" className="size-full object-cover" />
+      </div>
+    );
+  }
   const hex = colorHex(color);
   return (
     <div

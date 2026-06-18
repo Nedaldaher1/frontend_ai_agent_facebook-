@@ -83,6 +83,7 @@ export function ProductsTable({
               <div role="cell">
                 <ProductThumb
                   color={p.colors?.[0]}
+                  url={p.images?.[0]?.url}
                   className="h-[50px] w-[42px]"
                   showLabel
                 />

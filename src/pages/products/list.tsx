@@ -39,7 +39,7 @@ import {
   ProductsTableSkeleton,
 } from "@/components/products/products-table";
 import { COLORS, PUBLISH_STATUSES, STOCK_STATUSES } from "@/constants/enums";
-import type { Product } from "@/types/product";
+import type { ColorValue, Product } from "@/types/product";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 12;
@@ -71,17 +71,15 @@ export const ProductList = () => {
   const hasActiveFilters =
     !!search || color !== "all" || status !== "all" || stock !== "all";
 
-  const filters = useMemo<CrudFilters>(() => {
-    const f: CrudFilters = [];
-    if (search) f.push({ field: "name", operator: "contains", value: search });
-    if (color !== "all")
-      f.push({ field: "colors", operator: "contains", value: color });
-    if (status !== "all")
-      f.push({ field: "status", operator: "eq", value: status });
-    if (stock !== "all")
-      f.push({ field: "stock", operator: "eq", value: stock });
-    return f;
-  }, [search, color, status, stock]);
+  // Only publish status is filterable server-side (the admin list accepts
+  // `published` only); color/stock/search narrow the loaded page client-side.
+  const filters = useMemo<CrudFilters>(
+    () =>
+      status !== "all"
+        ? [{ field: "status", operator: "eq", value: status }]
+        : [],
+    [status],
+  );
 
   const { result, query } = useList<Product>({
     resource: "products",
@@ -96,6 +94,20 @@ export const ProductList = () => {
   const total = result?.total ?? 0;
   const { isLoading, isError, refetch } = query;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Client-side narrowing of the loaded page (no server text/color/stock filter).
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((p) => {
+        if (search && !p.name.toLowerCase().includes(search.toLowerCase()))
+          return false;
+        if (color !== "all" && !(p.colors ?? []).includes(color as ColorValue))
+          return false;
+        if (stock !== "all" && p.stock !== stock) return false;
+        return true;
+      }),
+    [products, search, color, stock],
+  );
 
   const { mutate: updateProduct } = useUpdate();
   const { mutate: deleteProduct } = useDelete();
@@ -216,7 +228,7 @@ export const ProductList = () => {
         <ErrorState onRetry={() => refetch()} />
       ) : isLoading ? (
         <ProductsTableSkeleton rows={PAGE_SIZE > 6 ? 6 : PAGE_SIZE} />
-      ) : products.length === 0 ? (
+      ) : filteredProducts.length === 0 ? (
         <EmptyState
           filtered={hasActiveFilters}
           onAdd={() => create("products")}
@@ -224,7 +236,7 @@ export const ProductList = () => {
       ) : (
         <>
           <ProductsTable
-            products={products}
+            products={filteredProducts}
             pendingId={togglingId}
             onEdit={(id) => edit("products", id)}
             onToggle={handleToggle}
