@@ -34,7 +34,6 @@ import type {
   SizeId,
   StockStatus,
 } from "@/types/product";
-import { ProductAiSuggestions } from "./product-ai-suggestions";
 import { ProductDetailsFields } from "./product-details-fields";
 import { ProductFormAside } from "./product-form-aside";
 import { ProductImagesField } from "./product-images-field";
@@ -232,12 +231,7 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
             onSetMain={setMain}
             onSetColor={setImageColor}
           />
-          <ProductAiSuggestions
-            suggestions={ai}
-            approved={aiApproved}
-            onEdit={editSuggestion}
-            onApproveAll={approveAll}
-          />
+  
           <ProductDetailsFields
             values={values}
             errors={errors}
