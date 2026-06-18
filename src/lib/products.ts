@@ -132,13 +132,16 @@ export function formValuesToPayload(
     embroidery: values.embroidery || undefined,
     tags: values.tags,
     status: publish ? "published" : "draft",
-    // NOTE: image binaries aren't uploaded yet — only the color/variant
-    // metadata is sent. Wiring real file upload to the backend is a TODO.
+    // Carry each variant's storage `key` (existing images to keep) and pending
+    // `file` (new uploads) so the data provider can reconcile the gallery on
+    // save: delete removed keys, upload new files, set the first as primary.
     images: values.images.map((img, i) => ({
       id: img.id,
       color: img.color,
       isMain: i === 0,
       analyzed: img.analyzed,
+      key: img.key,
+      file: img.file,
     })),
   };
 }
@@ -149,14 +152,17 @@ export type ProductFormErrors = {
   images: boolean;
 };
 
-/** Mirror of the prototype's `validate()` — required: name, price, ≥1 image. */
+/** The backend's accepted JOD price shape (e.g. "45", "45.5", "45.990"). */
+const PRICE_PATTERN = /^\d+(\.\d{1,3})?$/;
+
+/** Required: name, a pattern-valid price, and ≥1 image. */
 export function validateProductForm(
   values: ProductFormValues,
 ): ProductFormErrors {
   const price = values.price.trim();
   return {
     name: !values.name.trim(),
-    price: !price || Number.isNaN(Number.parseFloat(price)),
+    price: !PRICE_PATTERN.test(price),
     images: values.images.length === 0,
   };
 }

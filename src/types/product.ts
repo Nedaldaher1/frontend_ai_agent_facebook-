@@ -39,6 +39,10 @@ export interface ProductImage {
   isMain?: boolean;
   analyzed: boolean;
   hasEmbedding?: boolean;
+  /** Storage key of an image already on the backend (e.g. "abc123.jpg"). */
+  key?: string;
+  /** Binary held locally until Save uploads it (create + newly-added images). */
+  file?: File;
 }
 
 /** Optional physical measurements (cm). All optional. */
@@ -65,7 +69,8 @@ export interface AiSuggestion {
 
 /** A product as stored in the catalog / returned by the admin API. */
 export interface Product {
-  id: number;
+  /** Backend product id (UUID). */
+  id: string;
   name: string;
   description?: string;
   /** Decimal string in JOD, e.g. "38.500". */
