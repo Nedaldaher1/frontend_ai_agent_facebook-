@@ -22,7 +22,10 @@ export function Swatch({
   hex: string | null;
   className?: string;
 }) {
-  const base = "shrink-0 rounded-[7px] border";
+  // `inline-block` so width/height apply in any context (in a plain grid/table
+  // cell a bare inline <span> collapses to a thin vertical line); `rounded-full`
+  // makes it a circular swatch.
+  const base = "inline-block shrink-0 rounded-full border";
   if (!hex) {
     return (
       <span
