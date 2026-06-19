@@ -11,7 +11,7 @@ import type { UseFormRegister } from "react-hook-form";
 import { KeyRound } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { HEX_PATTERN, type ColorFormErrors } from "@/lib/colors";
+import { HEX_PATTERN, sanitizeFamily, type ColorFormErrors } from "@/lib/colors";
 import type { ColorFormValues } from "@/types/color";
 import { cn } from "@/lib/utils";
 import {
@@ -29,6 +29,8 @@ type ColorFieldsProps = {
   register: UseFormRegister<ColorFormValues>;
   /** Sync the native color picker back into the form's `hex` value. */
   onHex: (hex: string) => void;
+  /** Write the sanitized `family` slug back into the form (controlled input). */
+  onFamily: (family: string) => void;
 };
 
 export function ColorFields({
@@ -36,6 +38,7 @@ export function ColorFields({
   errors,
   register,
   onHex,
+  onFamily,
 }: ColorFieldsProps) {
   const pickerValue = HEX_PATTERN.test(values.hex) ? values.hex : "#000000";
 
@@ -62,7 +65,8 @@ export function ColorFields({
         <div>
           <FieldLabel required>المفتاح القياسي</FieldLabel>
           <Input
-            {...register("family")}
+            value={values.family ?? ""}
+            onChange={(e) => onFamily(sanitizeFamily(e.target.value))}
             dir="ltr"
             spellCheck={false}
             autoCapitalize="none"

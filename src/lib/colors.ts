@@ -10,12 +10,41 @@
  * instead. The DB constraint remains the ultimate backstop.
  */
 
+import { z } from "zod";
+
 import type { Color, ColorFormValues, ColorSubmit } from "@/types/color";
 
-/** A stable English slug: starts with a letter, then letters/digits/-/_. */
-export const FAMILY_PATTERN = /^[a-z][a-z0-9_-]*$/;
+/** A stable English slug: lowercase letters, digits, `-` and `_`. */
+export const FAMILY_PATTERN = /^[a-z0-9_-]+$/;
 /** A six-digit hex color, e.g. `#B0212F`. */
 export const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
+/**
+ * Client schema mirroring the backend `createColorSchema` so the form rejects
+ * the same shapes the API would (name required, `family` a lowercase slug, `hex`
+ * either empty or `#RRGGBB`). Wired into the form via `zodResolver`. The empty
+ * `hex` is allowed here and stripped to `undefined`/`null` at submit time by the
+ * data provider — keeping the wire-shape concern out of the schema.
+ */
+export const colorSchema = z.object({
+  name: z.string().trim().min(1, "اسم اللون مطلوب"),
+  family: z
+    .string()
+    .trim()
+    .min(1, "المفتاح مطلوب")
+    .regex(FAMILY_PATTERN, "أحرف إنجليزية صغيرة وأرقام و«-» و«_» فقط"),
+  hex: z
+    .string()
+    .refine(
+      (v) => v === "" || HEX_PATTERN.test(v),
+      "صيغة غير صحيحة — استخدم ‎#RRGGBB",
+    ),
+  isActive: z.boolean(),
+});
+
+/** Coerce raw `family` keystrokes to the allowed alphabet (lowercase slug). */
+export const sanitizeFamily = (value: string): string =>
+  value.toLowerCase().replace(/[^a-z0-9_-]/g, "");
 
 /** A pristine form for the "create" flow (active by default). */
 export function blankColorForm(): ColorFormValues {
@@ -32,58 +61,24 @@ export function colorToFormValues(color: Color): ColorFormValues {
   };
 }
 
-/** Build the create/update payload (`hex` "" → `null`). */
+/** Build the create/update payload (`hex` "" → `null`). Values are guarded
+ *  because Refine populates the edit form from the raw record (nullable `hex`). */
 export function formValuesToSubmit(values: ColorFormValues): ColorSubmit {
-  const hex = values.hex.trim();
+  const hex = (values.hex ?? "").trim();
   return {
-    name: values.name.trim(),
-    family: values.family.trim(),
+    name: (values.name ?? "").trim(),
+    family: (values.family ?? "").trim(),
     hex: hex ? hex : null,
     isActive: values.isActive,
   };
 }
 
+/** Inline field errors surfaced under the color form's inputs. */
 export type ColorFormErrors = {
   name?: string;
   family?: string;
   hex?: string;
 };
-
-/**
- * Validate the color form. `existingFamilies` is the set of `family` keys
- * already taken (excluding the color being edited) so a duplicate is caught
- * before the request.
- */
-export function validateColorForm(
-  values: ColorFormValues,
-  existingFamilies: Set<string>,
-): ColorFormErrors {
-  const errors: ColorFormErrors = {};
-
-  if (!values.name.trim()) {
-    errors.name = "اسم اللون مطلوب";
-  }
-
-  const family = values.family.trim();
-  if (!family) {
-    errors.family = "المفتاح مطلوب";
-  } else if (!FAMILY_PATTERN.test(family)) {
-    errors.family = "أحرف إنجليزية صغيرة وأرقام و«-» و«_» فقط، تبدأ بحرف";
-  } else if (existingFamilies.has(family)) {
-    errors.family = "هذا المفتاح مستخدم مسبقاً";
-  }
-
-  const hex = values.hex.trim();
-  if (hex && !HEX_PATTERN.test(hex)) {
-    errors.hex = "صيغة غير صحيحة — استخدم ‎#RRGGBB";
-  }
-
-  return errors;
-}
-
-export function hasColorErrors(errors: ColorFormErrors): boolean {
-  return Boolean(errors.name || errors.family || errors.hex);
-}
 
 /**
  * Validate a dialect term before adding/renaming it. `takenTerms` is the set of

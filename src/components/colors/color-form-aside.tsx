@@ -33,6 +33,9 @@ export function ColorFormAside({
   onCancel,
 }: ColorFormAsideProps) {
   const { isActive } = values;
+  // On create the toggle is locked on: a new color is activated server-side, so
+  // the field is shown (ON) but not editable until the color exists.
+  const isCreate = mode === "create";
 
   return (
     <aside className="top-[30px] flex flex-col gap-4 lg:sticky">
@@ -42,16 +45,21 @@ export function ColorFormAside({
           معاينة اللون
         </div>
         <div className="flex items-center gap-3.5 p-[18px]">
-          <Swatch hex={values.hex.trim() || null} className="size-14 rounded-[14px]" />
+          {/* Refine populates the edit form from the raw record, where `hex` is
+              nullable — guard every value before trimming for the preview. */}
+          <Swatch
+            hex={(values.hex ?? "").trim() || null}
+            className="size-14 rounded-[14px]"
+          />
           <div className="min-w-0">
             <div className="truncate text-[15px] font-semibold text-[#14161B]">
-              {values.name.trim() || "اسم اللون"}
+              {(values.name ?? "").trim() || "اسم اللون"}
             </div>
             <div
               dir="ltr"
               className="mt-0.5 truncate text-start font-mono text-[12px] text-[#9197A0]"
             >
-              {values.family.trim() || "key"}
+              {(values.family ?? "").trim() || "key"}
             </div>
             <div className="mt-2">
               <ColorStatusBadge active={isActive} />
@@ -75,14 +83,16 @@ export function ColorFormAside({
           <Switch
             checked={isActive}
             onCheckedChange={onToggleActive}
+            disabled={isCreate}
             aria-label="تبديل حالة اللون"
           />
         </div>
         <div className="mt-3.5 flex items-start gap-[9px] rounded-[11px] border border-[#EDEEF1] bg-[#F7F8FA] px-3 py-[11px]">
           <Info className="mt-px size-3.5 shrink-0 text-[#9197A0]" />
           <p className="m-0 text-xs leading-relaxed text-[#7A7F88]">
-            تعطيل اللون يبقيه محفوظاً مع مصطلحاته لكن لا يستخدمه المساعد في مطابقة
-            ألوان المنتجات — بديل آمن عن الحذف.
+            {isCreate
+              ? "اللون الجديد مفعّل تلقائيًا، يمكنك تعطيله بعد الحفظ."
+              : "تعطيل اللون يبقيه محفوظاً مع مصطلحاته لكن لا يستخدمه المساعد في مطابقة ألوان المنتجات — بديل آمن عن الحذف."}
           </p>
         </div>
       </div>

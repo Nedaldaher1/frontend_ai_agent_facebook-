@@ -49,11 +49,38 @@ export interface ColorFormValues {
 
 /**
  * The submit payload the form hands to the data provider. The provider maps it
- * onto the strict camelCase create/update body (`hex` "" → `null`).
+ * onto the strict camelCase create/update body (create drops `isActive` and an
+ * empty `hex`; update keeps both, `hex` "" → `null`).
  */
 export interface ColorSubmit {
   name: string;
   family: string;
   hex: string | null;
   isActive: boolean;
+}
+
+/**
+ * A dialect term as it lives in the editor before/while it is persisted. Both
+ * the create and edit flows stage terms locally as chips and apply them on Save
+ * (POST/PATCH/DELETE), so each chip carries its own lifecycle + inline error.
+ *
+ *  - `new`       — staged, not yet on the server (no `id`).
+ *  - `persisted` — exists on the server (`id` set); `originalTerm` detects renames.
+ *  - `saving`    — a write is in flight for this chip.
+ *  - `error`     — the last write failed (e.g. 409 duplicate); `error` is shown inline.
+ */
+export type SynonymChipStatus = "new" | "persisted" | "saving" | "error";
+
+export interface SynonymChip {
+  /** Stable local key (survives reorder/persist; not the backend id). */
+  key: string;
+  /** Backend synonym id once persisted. */
+  id?: string;
+  /** The current term text. */
+  term: string;
+  /** The persisted term, to detect an inline rename (persisted chips only). */
+  originalTerm?: string;
+  status: SynonymChipStatus;
+  /** Inline message for a failed write (e.g. duplicate term). */
+  error?: string;
 }
