@@ -3,36 +3,39 @@
 import { useTheme } from "@/components/refine-ui/theme/theme-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 
 type ThemeToggleProps = {
   className?: string;
 };
 
+/**
+ * A binary light <-> dark theme switch. When the stored preference is
+ * "system", we resolve the currently-rendered theme from the OS so the very
+ * first click flips to the opposite of what the user actually sees.
+ */
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
 
-  const cycleTheme = () => {
-    switch (theme) {
-      case "light":
-        setTheme("dark");
-        break;
-      case "dark":
-        setTheme("system");
-        break;
-      case "system":
-        setTheme("light");
-        break;
-      default:
-        setTheme("light");
-    }
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" &&
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  const label = isDark ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن";
+
+  const toggleTheme = () => {
+    setTheme(isDark ? "light" : "dark");
   };
 
   return (
     <Button
       variant="outline"
       size="icon"
-      onClick={cycleTheme}
+      onClick={toggleTheme}
+      aria-label={label}
+      title={label}
       className={cn(
         "rounded-full",
         "border-sidebar-border",
@@ -46,13 +49,9 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         className={cn(
           "h-[1.2rem]",
           "w-[1.2rem]",
-          "rotate-0",
-          "scale-100",
           "transition-all",
           "duration-200",
-          {
-            "-rotate-90 scale-0": theme === "dark" || theme === "system",
-          }
+          isDark ? "-rotate-90 scale-0" : "rotate-0 scale-100"
         )}
       />
       <Moon
@@ -60,32 +59,12 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           "absolute",
           "h-[1.2rem]",
           "w-[1.2rem]",
-          "rotate-90",
-          "scale-0",
           "transition-all",
           "duration-200",
-          {
-            "rotate-0 scale-100": theme === "dark",
-            "rotate-90 scale-0": theme === "light" || theme === "system",
-          }
+          isDark ? "rotate-0 scale-100" : "rotate-90 scale-0"
         )}
       />
-      <Monitor
-        className={cn(
-          "absolute",
-          "h-[1.2rem]",
-          "w-[1.2rem]",
-          "rotate-0",
-          "scale-0",
-          "transition-all",
-          "duration-200",
-          {
-            "scale-100": theme === "system",
-            "scale-0": theme === "light" || theme === "dark",
-          }
-        )}
-      />
-      <span className="sr-only">Toggle theme (Light → Dark → System)</span>
+      <span className="sr-only">{label}</span>
     </Button>
   );
 }
