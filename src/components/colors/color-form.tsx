@@ -29,7 +29,7 @@ import {
   useUpdate,
   type HttpError,
 } from "@refinedev/core";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, TriangleAlert } from "lucide-react";
 
 import {
   blankColorForm,
@@ -45,6 +45,15 @@ import type {
   ColorSynonym,
   SynonymChip,
 } from "@/types/color";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { FormCard } from "@/components/products/product-form-ui";
 import { ColorFields } from "./color-fields";
 import { ColorFormAside } from "./color-form-aside";
@@ -98,10 +107,19 @@ export function ColorForm({ mode }: { mode: "create" | "edit" }) {
   const [saving, setSaving] = useState(false);
   const chipKey = useRef(0);
 
+  // Standard-key (family) change confirmation. `savedFamily` is the last
+  // persisted family; a submit that differs is gated behind a confirm dialog.
+  const [savedFamily, setSavedFamily] = useState("");
+  const [familyConfirmOpen, setFamilyConfirmOpen] = useState(false);
+  const [pendingValues, setPendingValues] = useState<ColorFormValues | null>(
+    null,
+  );
+
   // Seed the form + chips from the loaded record (edit flow).
   useEffect(() => {
     if (mode === "edit" && record) {
       reset(colorToFormValues(record));
+      setSavedFamily(record.family);
       setChips(
         (record.synonyms ?? []).map((s) => ({
           key: s.id,
@@ -284,13 +302,31 @@ export function ColorForm({ mode }: { mode: "create" | "edit" }) {
     "تعذّر حفظ بعض المصطلحات — صحّح المميّزة بالأحمر ثم احفظ.";
 
   // --- submit ----------------------------------------------------------------
+  /** Submit gate. name/hex/isActive save freely; a `family` change is held back
+   *  for explicit confirmation first (it affects search + linked terms). */
   const onValid = async (v: ColorFormValues) => {
-    // Pre-empt a duplicate family (inline message instead of a 409 round-trip).
+    // Pre-empt a duplicate family (inline message instead of a round-trip).
     if (existingFamilies.has(v.family.trim())) {
       setError("family", { message: "هذا المفتاح مستخدم مسبقًا" });
       return;
     }
+    if (isEditing && v.family.trim() !== savedFamily) {
+      setPendingValues(v);
+      setFamilyConfirmOpen(true);
+      return;
+    }
+    await performSave(v, false);
+  };
 
+  /** Proceed with a confirmed family change → save with the confirm flag. */
+  const confirmFamilyChange = () => {
+    setFamilyConfirmOpen(false);
+    const v = pendingValues;
+    setPendingValues(null);
+    if (v) void performSave(v, true);
+  };
+
+  const performSave = async (v: ColorFormValues, confirmFamily: boolean) => {
     setSaving(true);
     const payload = formValuesToSubmit(v);
     const snapshot = chips;
@@ -314,6 +350,7 @@ export function ColorForm({ mode }: { mode: "create" | "edit" }) {
         }
 
         setCreatedId(newId); // keep editing this color in place from here on
+        setSavedFamily(payload.family);
         const failures = await persistNewChips(snapshot, newId);
         refreshLists();
 
@@ -339,13 +376,32 @@ export function ColorForm({ mode }: { mode: "create" | "edit" }) {
           dataProviderName: "colors",
           id,
           values: payload,
+          meta: { confirmFamilyChange: confirmFamily },
           successNotification: false,
-          errorNotification: colorErrorNotification,
+          errorNotification: false,
         });
       } catch (error) {
-        handleColorError(error);
+        const status = (error as HttpError)?.statusCode;
+        // 409 without the flag = the backend wants the family change confirmed;
+        // surface the same dialog and retry with the flag (fallback to the gate).
+        if (status === 409 && !confirmFamily) {
+          setPendingValues(v);
+          setFamilyConfirmOpen(true);
+          return;
+        }
+        if (status === 409) {
+          setError("family", { message: "هذا المفتاح مستخدم مسبقًا" });
+          return;
+        }
+        open?.({
+          type: "error",
+          message: (error as HttpError)?.message ?? "تعذّر حفظ اللون",
+          key: "color-save",
+        });
         return;
       }
+
+      setSavedFamily(payload.family);
 
       let failures = 0;
       failures += await flushDeletes();
@@ -434,6 +490,41 @@ export function ColorForm({ mode }: { mode: "create" | "edit" }) {
           onCancel={() => list("colors")}
         />
       </div>
+
+      {/* Standard-key (family) change confirmation */}
+      <AlertDialog
+        open={familyConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFamilyConfirmOpen(false);
+            setPendingValues(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="max-w-[420px] rounded-[20px] p-[26px]">
+          <div className="mb-4 flex size-[52px] items-center justify-center rounded-[15px] border border-[#F4D9A6] bg-[#FBF1DD] text-[#9A6B12]">
+            <TriangleAlert className="size-5" />
+          </div>
+          <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+            تغيير المفتاح القياسي؟
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+            تغيير المفتاح القياسي يؤثّر على البحث والمصطلحات المرتبطة بهذا اللون.
+            هل تريد المتابعة؟
+          </AlertDialogDescription>
+          <AlertDialogFooter className="mt-[22px] gap-2.5 sm:justify-stretch">
+            <Button
+              className="h-auto flex-1 rounded-[12px] py-[11px] font-semibold"
+              onClick={confirmFamilyChange}
+            >
+              متابعة
+            </Button>
+            <AlertDialogCancel className="m-0 h-auto flex-1 rounded-[12px] py-[11px] font-semibold">
+              تراجع
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
