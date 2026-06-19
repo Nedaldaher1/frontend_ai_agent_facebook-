@@ -133,12 +133,14 @@ export function formValuesToPayload(
   resolveFamily: (colorId: string) => ColorValue | "",
 ): Partial<Product> {
   return {
-    name: values.name.trim(),
-    description: values.description.trim() || undefined,
-    price: values.price.trim(),
+    // Guard every `.trim()`: Refine re-populates the edit form from the raw
+    // record, where optional fields (description, maxWeight) arrive `undefined`.
+    name: (values.name ?? "").trim(),
+    description: (values.description ?? "").trim() || undefined,
+    price: (values.price ?? "").trim(),
     colors: uniqueColors(values.images, resolveFamily),
     sizes: values.sizes,
-    maxWeight: values.maxWeight.trim() || undefined,
+    maxWeight: (values.maxWeight ?? "").trim() || undefined,
     measurements: values.measurements,
     stock: values.stock,
     sleeve: values.sleeve || undefined,
@@ -174,11 +176,12 @@ const PRICE_PATTERN = /^\d+(\.\d{1,3})?$/;
 export function validateProductForm(
   values: ProductFormValues,
 ): ProductFormErrors {
-  const price = values.price.trim();
+  // Guard against the raw nullable record Refine resets the edit form with.
+  const price = (values.price ?? "").trim();
   return {
-    name: !values.name.trim(),
+    name: !(values.name ?? "").trim(),
     price: !PRICE_PATTERN.test(price),
-    images: values.images.length === 0,
+    images: (values.images ?? []).length === 0,
   };
 }
 
