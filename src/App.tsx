@@ -35,7 +35,12 @@ import {
   KnowledgeEdit,
   KnowledgeList,
 } from "./pages/knowledge";
-import { ColorCreate, ColorEdit, ColorList } from "./pages/colors";
+import {
+  ColorCreate,
+  ColorEdit,
+  ColorList,
+  ColorReview,
+} from "./pages/colors";
 
 function App() {
   return (
@@ -91,6 +96,7 @@ function App() {
                   <Route path="/colors">
                     <Route index element={<ColorList />} />
                     <Route path="create" element={<ColorCreate />} />
+                    <Route path="review" element={<ColorReview />} />
                     <Route path="edit/:id" element={<ColorEdit />} />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />

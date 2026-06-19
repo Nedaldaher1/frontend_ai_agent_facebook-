@@ -40,6 +40,7 @@ import type {
   StockStatus,
 } from "@/types/product";
 import type { Color } from "@/types/color";
+import { useInvalidateUnassignedUsage } from "@/hooks/use-unassigned-colors";
 import { ProductDetailsFields } from "./product-details-fields";
 import { ProductFormAside } from "./product-form-aside";
 import { ProductImagesField } from "./product-images-field";
@@ -52,12 +53,18 @@ type AttrKey = "sleeve" | "fabric" | "occasion" | "embroidery";
 export function ProductForm({ mode }: { mode: "create" | "edit" }) {
   const { list } = useNavigation();
   const { open } = useNotification();
+  const invalidateUnassigned = useInvalidateUnassignedUsage();
 
   const form = useForm<Product, HttpError, ProductFormValues>({
     refineCoreProps: {
       resource: "products",
       action: mode,
       redirect: "list",
+      // Assigning a real color to an image fixes it, so drain the review queue
+      // (and its nav badge) on every save.
+      onMutationSuccess: () => {
+        void invalidateUnassigned();
+      },
       successNotification: (_data, values) => ({
         type: "success",
         message:

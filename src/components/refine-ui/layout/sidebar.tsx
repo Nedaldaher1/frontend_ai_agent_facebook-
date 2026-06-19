@@ -11,11 +11,15 @@
  * "قريباً" (soon) entries — the Phase 2 placeholders.
  */
 
+import { Fragment } from "react";
+import { useLocation } from "react-router";
+
 import {
   useIsDarkMode,
   useTheme,
 } from "@/components/refine-ui/theme/theme-provider";
 import { brand } from "@/constants/theme";
+import { useUnassignedUsage } from "@/hooks/use-unassigned-colors";
 import { cn } from "@/lib/utils";
 import {
   useGetIdentity,
@@ -24,7 +28,14 @@ import {
   useMenu,
   type TreeMenuItem,
 } from "@refinedev/core";
-import { Gem, ListIcon, LogOut, Moon, Sun } from "lucide-react";
+import {
+  Gem,
+  ListIcon,
+  LogOut,
+  Moon,
+  Sun,
+  TriangleAlert,
+} from "lucide-react";
 
 type Identity = {
   name?: string | null;
@@ -101,7 +112,7 @@ function SidebarNav() {
         }
 
         const isActive = item.key === selectedKey;
-        return (
+        const linkEl = (
           <Link
             key={item.key ?? item.name}
             to={item.route}
@@ -126,8 +137,59 @@ function SidebarNav() {
             {label}
           </Link>
         );
+
+        // The colors review queue lives under the colors entry, with a live badge.
+        if (item.name === "colors") {
+          return (
+            <Fragment key={item.key ?? item.name}>
+              {linkEl}
+              <ReviewNavLink />
+            </Fragment>
+          );
+        }
+
+        return linkEl;
       })}
     </nav>
+  );
+}
+
+/** "تحتاج مراجعة" — a sub-entry under Colors with a live count badge (the count
+ *  of products with sentinel-tagged images; badge hidden when zero). */
+function ReviewNavLink() {
+  const Link = useLink();
+  const location = useLocation();
+  const { data } = useUnassignedUsage();
+  const count = data?.productCount ?? 0;
+  const isActive = location.pathname === "/colors/review";
+
+  return (
+    <Link
+      to="/colors/review"
+      className={cn(
+        "flex items-center gap-[11px] rounded-[11px] py-2.5 pe-3 ps-[26px] text-[13px] transition-colors",
+        isActive
+          ? "font-semibold text-white"
+          : "text-[#A7ABB4] hover:bg-white/5 hover:text-white",
+      )}
+      style={
+        isActive
+          ? {
+              background: `color-mix(in srgb, ${brand.accent} 22%, #14161B)`,
+              boxShadow: `inset -3px 0 0 ${brand.accent}`,
+            }
+          : undefined
+      }
+      aria-current={isActive ? "page" : undefined}
+    >
+      <TriangleAlert className="size-[15px] text-[#E2A33A]" />
+      تحتاج مراجعة
+      {count > 0 && (
+        <span className="ms-auto inline-flex min-w-5 items-center justify-center rounded-full bg-[#E2A33A] px-1.5 py-0.5 text-[10.5px] font-bold text-[#1B1207]">
+          {count}
+        </span>
+      )}
+    </Link>
   );
 }
 
