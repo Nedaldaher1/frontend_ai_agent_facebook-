@@ -11,6 +11,10 @@
  * "قريباً" (soon) entries — the Phase 2 placeholders.
  */
 
+import {
+  useIsDarkMode,
+  useTheme,
+} from "@/components/refine-ui/theme/theme-provider";
 import { brand } from "@/constants/theme";
 import { cn } from "@/lib/utils";
 import {
@@ -20,7 +24,7 @@ import {
   useMenu,
   type TreeMenuItem,
 } from "@refinedev/core";
-import { Gem, ListIcon, LogOut } from "lucide-react";
+import { Gem, ListIcon, LogOut, Moon, Sun } from "lucide-react";
 
 type Identity = {
   name?: string | null;
@@ -130,10 +134,13 @@ function SidebarNav() {
 function SidebarUserCard() {
   const { data: user } = useGetIdentity<Identity>();
   const { mutate: logout, isPending } = useLogout();
+  const { setTheme } = useTheme();
+  const isDark = useIsDarkMode();
 
   const name = user?.name ?? "—";
   const role = user?.role ?? "مدير الكتالوج";
   const initial = (name?.trim()?.[0] ?? "?").toUpperCase();
+  const themeLabel = isDark ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن";
 
   return (
     <div className="flex items-center gap-[11px] rounded-[13px] border border-[#262A33] bg-[#1B1E25] px-2.5 py-[11px]">
@@ -149,17 +156,33 @@ function SidebarUserCard() {
         </div>
         <div className="truncate text-[11px] text-[#7C808A]">{role}</div>
       </div>
-      <button
-        type="button"
-        onClick={() => logout()}
-        disabled={isPending}
-        title="تسجيل الخروج"
-        aria-label="تسجيل الخروج"
-        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[#7C808A] transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
-      >
-        {/* The log-out glyph points "outward"; mirror it for RTL. */}
-        <LogOut className="size-4 rtl:-scale-x-100" />
-      </button>
+      <div className="flex shrink-0 items-center gap-1">
+        {/* The sidebar stays dark by design; this flips the content area. */}
+        <button
+          type="button"
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          title={themeLabel}
+          aria-label={themeLabel}
+          className="flex size-8 items-center justify-center rounded-lg text-[#7C808A] transition-colors hover:bg-white/5 hover:text-white"
+        >
+          {isDark ? (
+            <Moon className="size-4" />
+          ) : (
+            <Sun className="size-4" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => logout()}
+          disabled={isPending}
+          title="تسجيل الخروج"
+          aria-label="تسجيل الخروج"
+          className="flex size-8 items-center justify-center rounded-lg text-[#7C808A] transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+        >
+          {/* The log-out glyph points "outward"; mirror it for RTL. */}
+          <LogOut className="size-4 rtl:-scale-x-100" />
+        </button>
+      </div>
     </div>
   );
 }

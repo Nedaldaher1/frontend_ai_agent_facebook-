@@ -1,6 +1,9 @@
 "use client";
 
-import { useTheme } from "@/components/refine-ui/theme/theme-provider";
+import {
+  useIsDarkMode,
+  useTheme,
+} from "@/components/refine-ui/theme/theme-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Moon, Sun } from "lucide-react";
@@ -11,17 +14,12 @@ type ThemeToggleProps = {
 
 /**
  * A binary light <-> dark theme switch. When the stored preference is
- * "system", we resolve the currently-rendered theme from the OS so the very
- * first click flips to the opposite of what the user actually sees.
+ * "system", {@link useIsDarkMode} resolves the currently-rendered theme from
+ * the OS so the very first click flips to the opposite of what the user sees.
  */
 export function ThemeToggle({ className }: ThemeToggleProps) {
-  const { theme, setTheme } = useTheme();
-
-  const isDark =
-    theme === "dark" ||
-    (theme === "system" &&
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const { setTheme } = useTheme();
+  const isDark = useIsDarkMode();
 
   const label = isDark ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن";
 
