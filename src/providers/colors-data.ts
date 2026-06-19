@@ -43,6 +43,7 @@ import {
   dtoToColor,
   dtoToColorSynonym,
   submitToColorBody,
+  submitToCreateColorBody,
   type ColorDto,
   type ColorSynonymDto,
   type ColorWithSynonymsDto,
@@ -78,7 +79,7 @@ export const colorsDataProvider: DataProvider = {
   }: CreateParams<TVariables>): Promise<CreateResponse<TData>> => {
     const dto = await apiFetch<ColorDto>("admin/colors", {
       method: "POST",
-      json: submitToColorBody(variables as ColorSubmit),
+      json: submitToCreateColorBody(variables as ColorSubmit),
     });
     return { data: dtoToColor(dto) as unknown as TData };
   },

@@ -38,12 +38,24 @@ export type ColorSynonymDto = {
 /** `GET /admin/colors/:id` returns the color with its dialect terms attached. */
 export type ColorWithSynonymsDto = ColorDto & { synonyms: ColorSynonymDto[] };
 
-/** The strict camelCase body for POST/PATCH `/admin/colors`. */
+/** The strict camelCase body for PATCH `/admin/colors/:id`. */
 export type ColorBody = {
   name: string;
   family: string;
   hex: string | null;
   isActive: boolean;
+};
+
+/**
+ * The strict camelCase body for POST `/admin/colors`. Intentionally narrower
+ * than {@link ColorBody}: a new color defaults to active server-side, so we do
+ * NOT send `isActive`, and an empty swatch is omitted entirely (not sent as
+ * `null`) — the create body is exactly `{ name, family }` or `{ name, family, hex }`.
+ */
+export type ColorCreateBody = {
+  name: string;
+  family: string;
+  hex?: string;
 };
 
 export const dtoToColorSynonym = (dto: ColorSynonymDto): ColorSynonym => ({
@@ -70,10 +82,21 @@ export const dtoToColor = (
       : undefined,
 });
 
-/** Map a submit payload into the strict camelCase create/update body. */
+/** Map a submit payload into the strict camelCase update body (PATCH). */
 export const submitToColorBody = (s: ColorSubmit): ColorBody => ({
   name: s.name.trim(),
   family: s.family.trim(),
   hex: s.hex && s.hex.trim() ? s.hex.trim() : null,
   isActive: s.isActive,
 });
+
+/**
+ * Map a submit payload into the create body (POST): `{ name, family }` plus
+ * `hex` only when a swatch was chosen. `isActive` is never sent.
+ */
+export const submitToCreateColorBody = (s: ColorSubmit): ColorCreateBody => {
+  const body: ColorCreateBody = { name: s.name.trim(), family: s.family.trim() };
+  const hex = s.hex?.trim();
+  if (hex) body.hex = hex;
+  return body;
+};
