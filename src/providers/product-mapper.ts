@@ -5,10 +5,11 @@
  *
  * Key impedance mismatches handled here:
  *  - `stockStatus`: UI `in|out|soon` ⟷ API `in_stock|out|low`.
- *  - colour: UI tracks a color id (UUID) per image variant; the API stores a
- *    single `colorFamily`. The form resolves the first variant's id to its
- *    family for `colorFamily`, and we round-trip the per-image color ids inside
- *    `attributes.imageColors` so the gallery can re-select them on edit.
+ *  - colour: UI tracks a color id (UUID) per image variant. Those per-image tags
+ *    live in the `product_image_colors` join table — read here from
+ *    GET /admin/products/:id/images (`colors[]`) and written by the data provider
+ *    via PUT .../images/:key/colors. The API also stores a single `colorFamily`
+ *    on the product, which the form derives from the first variant's family.
  *  - sizes / weights / measurements: the API `sizes` is a bare `string[]`, so
  *    the bracket selection + weight ranges + body measurements live in the free
  *    `attributes` jsonb (spec §5.4).
@@ -31,8 +32,20 @@ import type {
 export type ProductDto = components["schemas"]["ProductDto"];
 /** Body for POST/PATCH — `camelCase`, the strict create/update shape. */
 export type ProductBody = components["schemas"]["CreateProductDto"];
+/** A canonical color as attached to an image (the join-table tag). */
+export type ImageColorBrief = {
+  id: string;
+  name: string;
+  family: string;
+  hex: string | null;
+};
 /** One image as returned by `GET /admin/products/:id/images`. */
-export type ProductImageItem = { key: string; url: string; isPrimary: boolean };
+export type ProductImageItem = {
+  key: string;
+  url: string;
+  isPrimary: boolean;
+  colors: ImageColorBrief[];
+};
 
 const STOCK_UI_TO_API: Record<StockStatus, ProductDto["stockStatus"]> = {
   in: "in_stock",
@@ -58,8 +71,6 @@ type StoredAttributes = {
     maxWeight?: number | null;
   };
   measurements?: ProductMeasurements;
-  /** Per-variant color ids (UUIDs), aligned to image order (index 0 = primary). */
-  imageColors?: (string | null)[];
 };
 
 const readAttributes = (dto: ProductDto): StoredAttributes => {
@@ -89,7 +100,6 @@ const buildAttributes = (p: Partial<Product>): StoredAttributes => {
       armpitCm: p.measurements?.armpitCm ?? null,
       lengthCm: p.measurements?.lengthCm ?? null,
     },
-    imageColors: (p.images ?? []).map((im) => im.color || null),
   };
 };
 
@@ -117,21 +127,24 @@ const buildImages = (
   dto: ProductDto,
   items?: ProductImageItem[],
 ): ProductImage[] => {
-  const colors = readAttributes(dto).imageColors ?? [];
   if (items) {
-    return items.map((it, i) => ({
+    return items.map((it) => ({
       id: it.key,
       key: it.key,
       url: it.url,
-      color: colors[i] ?? "",
+      // Per-image color is the join-table tag (first color). For a product that
+      // landed in the review queue this is the unassigned sentinel id, which the
+      // gallery resolves to «غير معرف» so the editor can re-assign a real color.
+      color: it.colors[0]?.id ?? "",
       isMain: it.isPrimary,
       analyzed: true,
     }));
   }
+  // List view (no images call): thumbnails only — per-image color isn't needed.
   return (dto.imageUrls ?? []).map((url, i) => ({
     id: i + 1,
     url,
-    color: colors[i] ?? "",
+    color: "",
     isMain: i === 0,
     analyzed: true,
   }));

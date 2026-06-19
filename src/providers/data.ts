@@ -7,9 +7,9 @@
  *  - `getList`   → GET /admin/products?limit&offset&published  (wrapped result)
  *  - `getOne`    → no such route exists; page the admin list and match by id,
  *                  then load images so the edit form gets storage keys
- *  - `create`    → POST product → upload held files → optional publish
- *  - `update`    → reconcile images (delete/upload/primary) → PATCH fields →
- *                  set publish state (publish body is snake_case)
+ *  - `create`    → POST product → upload held files → tag image colors → publish
+ *  - `update`    → reconcile images (delete/upload/primary) → tag image colors →
+ *                  PATCH fields → set publish state (publish body is snake_case)
  *  - `deleteOne` → DELETE /admin/products/:id
  */
 
@@ -169,6 +169,50 @@ const reconcileImages = async (
   return dto;
 };
 
+/**
+ * Persist each image's selected color to the `product_image_colors` join table
+ * via PUT /admin/products/:id/images/:key/colors. This is the ONLY admin writer
+ * of that table, and it is what feeds color-deletion reassignment and the
+ * "تحتاج مراجعة" queue — without it those features have no data to act on.
+ *
+ * Run AFTER the gallery is reconciled so every image has a storage key: existing
+ * images carry their `key`; freshly-uploaded files take the backend keys that
+ * weren't already on the form, in upload order (the multipart upload preserves
+ * gallery order). A tag is written only when it actually changed, so re-saving is
+ * a no-op and an untouched review item keeps its sentinel. Untagged images are
+ * skipped — the endpoint requires ≥1 color id and cannot clear a tag.
+ */
+const syncImageColors = async (
+  id: string,
+  images: ProductImage[],
+): Promise<void> => {
+  const items = await apiFetch<ProductImageItem[]>(
+    `admin/products/${id}/images`,
+  ).catch(() => [] as ProductImageItem[]);
+  if (items.length === 0) return;
+
+  const formKeys = new Set(
+    images.map((im) => im.key).filter((k): k is string => !!k),
+  );
+  const newKeys = items.map((it) => it.key).filter((k) => !formKeys.has(k));
+  const currentColorByKey = new Map(
+    items.map((it) => [it.key, it.colors[0]?.id ?? ""] as const),
+  );
+
+  let newIdx = 0;
+  for (const im of images) {
+    // Existing images match by key; new uploads consume fresh keys in order.
+    const key = im.key ?? (im.file ? newKeys[newIdx++] : undefined);
+    if (!key) continue;
+    const desired = im.color;
+    if (!desired || currentColorByKey.get(key) === desired) continue;
+    await apiFetch(
+      `admin/products/${id}/images/${encodeURIComponent(key)}/colors`,
+      { method: "PUT", json: { colorIds: [desired] } },
+    );
+  }
+};
+
 export const dataProvider: DataProvider = {
   getApiUrl: () => API_URL,
 
@@ -222,6 +266,10 @@ export const dataProvider: DataProvider = {
       .filter((f): f is File => !!f);
     if (files.length) dto = await uploadImages(dto.id, files);
 
+    // Tag each uploaded image with its chosen color (join table) so it feeds
+    // color-deletion reassignment and the review queue.
+    if (p.images?.length) await syncImageColors(dto.id, p.images);
+
     if (p.status === "published") dto = await setPublished(dto.id, true);
 
     return { data: dtoToProduct(dto) as unknown as TData };
@@ -237,6 +285,8 @@ export const dataProvider: DataProvider = {
 
     if ("images" in p) {
       dto = (await reconcileImages(pid, p.images ?? [])) ?? dto;
+      // Persist per-image color tags after the gallery is reconciled (keys exist).
+      await syncImageColors(pid, p.images ?? []);
     }
     if (hasProductFields(p)) {
       dto = await apiFetch<ProductDto>(`admin/products/${pid}`, {
