@@ -12,6 +12,7 @@ import {
   LayoutGrid,
   Library,
   MessageCircle,
+  Palette,
   Settings,
   ShoppingBag,
 } from "lucide-react";
@@ -36,7 +37,15 @@ export const resources: ResourceProps[] = [
       label: "قاعدة المعرفة",
       // Library glyph mirrored for RTL.
       icon: <Library className="size-4 rtl:-scale-x-100" />,
+    name: "colors",
+    list: "/colors",
+    create: "/colors/create",
+    edit: "/colors/edit/:id",
+    meta: {
+      label: "الألوان",
+      icon: <Palette className="size-4" />,
     },
+  },
   },
   // --- Phase 2+ placeholders (not yet routed) ---
   {

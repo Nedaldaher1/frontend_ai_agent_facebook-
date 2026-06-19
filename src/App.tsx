@@ -21,6 +21,10 @@ import { resources } from "./config/resources";
 import { authProvider } from "./providers/auth";
 import { dataProvider } from "./providers/data";
 import { knowledgeDataProvider } from "./providers/knowledge-data";
+import {
+  colorsDataProvider,
+  colorSynonymsDataProvider,
+} from "./providers/colors-data";
 
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
@@ -31,6 +35,7 @@ import {
   KnowledgeEdit,
   KnowledgeList,
 } from "./pages/knowledge";
+import { ColorCreate, ColorEdit, ColorList } from "./pages/colors";
 
 function App() {
   return (
@@ -42,6 +47,8 @@ function App() {
               dataProvider={{
                 default: dataProvider,
                 knowledge: knowledgeDataProvider,
+                colors: colorsDataProvider,
+                colorSynonyms: colorSynonymsDataProvider,
               }}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
@@ -80,6 +87,10 @@ function App() {
                     <Route index element={<KnowledgeList />} />
                     <Route path="create" element={<KnowledgeCreate />} />
                     <Route path="edit/:id" element={<KnowledgeEdit />} />
+                  <Route path="/colors">
+                    <Route index element={<ColorList />} />
+                    <Route path="create" element={<ColorCreate />} />
+                    <Route path="edit/:id" element={<ColorEdit />} />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
