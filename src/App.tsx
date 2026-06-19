@@ -18,6 +18,7 @@ import { useNotificationProvider } from "./components/refine-ui/notification/use
 import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
 
 import { resources } from "./config/resources";
+import { UnassignedUsageProvider } from "./hooks/use-unassigned-colors";
 import { authProvider } from "./providers/auth";
 import { dataProvider } from "./providers/data";
 import { knowledgeDataProvider } from "./providers/knowledge-data";
@@ -73,9 +74,11 @@ function App() {
                       key="authenticated-routes"
                       fallback={<CatchAllNavigate to="/login" />}
                     >
-                      <Layout>
-                        <Outlet />
-                      </Layout>
+                      <UnassignedUsageProvider>
+                        <Layout>
+                          <Outlet />
+                        </Layout>
+                      </UnassignedUsageProvider>
                     </Authenticated>
                   }
                 >

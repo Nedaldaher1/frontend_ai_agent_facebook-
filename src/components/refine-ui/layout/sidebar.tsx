@@ -159,8 +159,8 @@ function SidebarNav() {
 function ReviewNavLink() {
   const Link = useLink();
   const location = useLocation();
-  const { data } = useUnassignedUsage();
-  const count = data?.productCount ?? 0;
+  const { usage } = useUnassignedUsage();
+  const count = usage?.productCount ?? 0;
   const isActive = location.pathname === "/colors/review";
 
   return (

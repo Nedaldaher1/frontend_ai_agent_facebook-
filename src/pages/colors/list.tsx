@@ -42,7 +42,7 @@ import {
   ColorsTableSkeleton,
 } from "@/components/colors/colors-table";
 import { deleteColorById, fetchColorUsage } from "@/providers/colors-data";
-import { useInvalidateUnassignedUsage } from "@/hooks/use-unassigned-colors";
+import { useUnassignedUsage } from "@/hooks/use-unassigned-colors";
 import type { Color, ColorSynonym, ColorUsage } from "@/types/color";
 import { cn } from "@/lib/utils";
 
@@ -120,7 +120,7 @@ export const ColorList = () => {
 
   const { mutate: updateColor } = useUpdate();
   const invalidate = useInvalidate();
-  const invalidateUnassigned = useInvalidateUnassignedUsage();
+  const { refresh: refreshUnassigned } = useUnassignedUsage();
   const navigate = useNavigate();
 
   const resetPage = () => setCurrentPage(1);
@@ -185,7 +185,7 @@ export const ColorList = () => {
         dataProviderName: "colors",
         invalidates: ["list"],
       });
-      void invalidateUnassigned();
+      void refreshUnassigned();
 
       if (usage.productCount > 0) {
         toast.success(

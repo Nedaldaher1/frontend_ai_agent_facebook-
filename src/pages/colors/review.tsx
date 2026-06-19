@@ -28,13 +28,12 @@ const cardClass =
   "overflow-hidden rounded-[18px] border border-[#ECEDF1] bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_14px_38px_-28px_rgba(16,18,22,.28)]";
 
 export const ColorReview = () => {
-  const { data: usage, isLoading, isError, refetch, isFetching } =
-    useUnassignedUsage();
+  const { usage, isLoading, isError, refresh } = useUnassignedUsage();
 
   // Returning to the queue should reflect any fixes made elsewhere.
   useEffect(() => {
-    void refetch();
-  }, [refetch]);
+    void refresh();
+  }, [refresh]);
 
   const count = usage?.productCount ?? 0;
   const products = usage?.products ?? [];
@@ -66,17 +65,17 @@ export const ColorReview = () => {
         <Button
           variant="outline"
           className="h-auto gap-2 rounded-[12px] px-4 py-[11px] font-semibold"
-          onClick={() => refetch()}
-          disabled={isFetching}
+          onClick={() => refresh()}
+          disabled={isLoading}
         >
-          <RotateCw className={cn("size-4", isFetching && "animate-spin")} />
+          <RotateCw className={cn("size-4", isLoading && "animate-spin")} />
           تحديث
         </Button>
       </div>
 
       {/* States */}
       {isError ? (
-        <ErrorState onRetry={() => refetch()} />
+        <ErrorState onRetry={() => refresh()} />
       ) : isLoading ? (
         <ListSkeleton rows={5} />
       ) : count === 0 ? (

@@ -41,6 +41,8 @@ import type {
   DeleteOneParams,
   DeleteOneResponse,
   GetListResponse,
+  GetManyParams,
+  GetManyResponse,
   GetOneParams,
   GetOneResponse,
   UpdateParams,
@@ -90,6 +92,15 @@ export const colorsDataProvider: DataProvider = {
   }: GetOneParams): Promise<GetOneResponse<TData>> => {
     const dto = await apiFetch<ColorWithSynonymsDto>(`admin/colors/${id}`);
     return { data: dtoToColor(dto) as unknown as TData };
+  },
+
+  // No batch endpoint exists; fetch each by id (includes the sentinel). Used by
+  // useMany to resolve image colors that fall outside the assignable list.
+  getMany: async <TData extends BaseRecord = BaseRecord>({
+    ids,
+  }: GetManyParams): Promise<GetManyResponse<TData>> => {
+    const rows = await Promise.all(ids.map((id) => fetchColorById(String(id))));
+    return { data: rows as unknown as TData[] };
   },
 
   create: async <TData extends BaseRecord = BaseRecord, TVariables = object>({
