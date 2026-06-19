@@ -20,11 +20,16 @@ import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
 import { resources } from "./config/resources";
 import { authProvider } from "./providers/auth";
 import { dataProvider } from "./providers/data";
+import {
+  colorsDataProvider,
+  colorSynonymsDataProvider,
+} from "./providers/colors-data";
 
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import { ProductCreate, ProductEdit, ProductList } from "./pages/products";
+import { ColorCreate, ColorEdit, ColorList } from "./pages/colors";
 
 function App() {
   return (
@@ -33,7 +38,11 @@ function App() {
         <ThemeProvider>
           <DevtoolsProvider>
             <Refine
-              dataProvider={dataProvider}
+              dataProvider={{
+                default: dataProvider,
+                colors: colorsDataProvider,
+                colorSynonyms: colorSynonymsDataProvider,
+              }}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
               authProvider={authProvider}
@@ -66,6 +75,11 @@ function App() {
                     <Route index element={<ProductList />} />
                     <Route path="create" element={<ProductCreate />} />
                     <Route path="edit/:id" element={<ProductEdit />} />
+                  </Route>
+                  <Route path="/colors">
+                    <Route index element={<ColorList />} />
+                    <Route path="create" element={<ColorCreate />} />
+                    <Route path="edit/:id" element={<ColorEdit />} />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
