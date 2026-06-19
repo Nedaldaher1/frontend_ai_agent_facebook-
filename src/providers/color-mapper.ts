@@ -14,7 +14,12 @@
  * `id`/`createdAt`/`updatedAt` (server-owned).
  */
 
-import type { Color, ColorSubmit, ColorSynonym } from "@/types/color";
+import type {
+  Color,
+  ColorSubmit,
+  ColorSynonym,
+  ColorUsage,
+} from "@/types/color";
 
 /** A canonical color row as returned by the admin API. */
 export type ColorDto = {
@@ -38,6 +43,14 @@ export type ColorSynonymDto = {
 /** `GET /admin/colors/:id` returns the color with its dialect terms attached. */
 export type ColorWithSynonymsDto = ColorDto & { synonyms: ColorSynonymDto[] };
 
+/** A color-usage report as returned by the `/usage` endpoints (camelCase). */
+export type ColorUsageDto = {
+  productCount: number;
+  imageCount: number;
+  products: { id: string; name: string }[];
+  hasMore: boolean;
+};
+
 /** The strict camelCase body for PATCH `/admin/colors/:id`. */
 export type ColorBody = {
   name: string;
@@ -57,6 +70,16 @@ export type ColorCreateBody = {
   family: string;
   hex?: string;
 };
+
+/** Map a usage DTO into the UI {@link ColorUsage} (products copied defensively). */
+export const dtoToColorUsage = (dto: ColorUsageDto): ColorUsage => ({
+  productCount: dto.productCount ?? 0,
+  imageCount: dto.imageCount ?? 0,
+  products: Array.isArray(dto.products)
+    ? dto.products.map((p) => ({ id: p.id, name: p.name }))
+    : [],
+  hasMore: dto.hasMore ?? false,
+});
 
 export const dtoToColorSynonym = (dto: ColorSynonymDto): ColorSynonym => ({
   id: dto.id,

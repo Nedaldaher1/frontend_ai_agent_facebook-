@@ -20,6 +20,40 @@ export const FAMILY_PATTERN = /^[a-z0-9_-]+$/;
 export const HEX_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
 /**
+ * The system "unassigned" sentinel color. When a color is deleted, the backend
+ * retags that color's images to this sentinel; those images then need manual
+ * review (a human re-selects a real color).
+ *
+ * Identity is its stable `family` key — NEVER its stored `name` (the name must
+ * not be trusted for display). The sentinel is excluded from GET /admin/colors,
+ * so it is never offered as a NEW selection; it only ever surfaces as the current
+ * value of an already-tagged image.
+ */
+export const UNASSIGNED_COLOR_FAMILY = "__unassigned__";
+
+/** Hardcoded Arabic label for the sentinel — always used instead of the stored name. */
+export const UNASSIGNED_COLOR_NAME = "غير معرف";
+
+/** True when a color is the unassigned sentinel (keyed off `family`, not `name`). */
+export const isUnassignedColor = (
+  color: { family?: string | null } | null | undefined,
+): boolean => color?.family === UNASSIGNED_COLOR_FAMILY;
+
+/**
+ * The display label for a color. Forces the hardcoded {@link UNASSIGNED_COLOR_NAME}
+ * for the sentinel so a placeholder/tampered stored `name` can never leak to the
+ * UI — apply this anywhere the sentinel color could surface.
+ */
+export const colorDisplayName = (
+  color: { family: string; name: string } | null | undefined,
+): string =>
+  !color
+    ? ""
+    : color.family === UNASSIGNED_COLOR_FAMILY
+      ? UNASSIGNED_COLOR_NAME
+      : color.name;
+
+/**
  * Client schema mirroring the backend `createColorSchema` so the form rejects
  * the same shapes the API would (name required, `family` a lowercase slug, `hex`
  * either empty or `#RRGGBB`). Wired into the form via `zodResolver`. The empty

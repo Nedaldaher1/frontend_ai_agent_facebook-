@@ -84,3 +84,36 @@ export interface SynonymChip {
   /** Inline message for a failed write (e.g. duplicate term). */
   error?: string;
 }
+
+/** A product referenced by a color-usage report (distinct list, capped at 50). */
+export interface ColorUsageProduct {
+  id: string;
+  name: string;
+}
+
+/**
+ * Impact report for a color (GET /admin/colors/:id/usage) or for the whole
+ * unassigned queue (GET /admin/colors/unassigned/usage): how many products and
+ * images reference it, plus a capped, distinct sample of product names.
+ */
+export interface ColorUsage {
+  /** Total distinct products that use the color. */
+  productCount: number;
+  /** Total images tagged with the color. */
+  imageCount: number;
+  /** Distinct product sample (≤50). `hasMore` is true when more exist. */
+  products: ColorUsageProduct[];
+  hasMore: boolean;
+}
+
+/**
+ * Result of DELETE /admin/colors/:id under the removal workflow: the color is
+ * deleted and its images are retagged to the unassigned sentinel for review.
+ */
+export interface DeleteColorResult {
+  deleted: boolean;
+  /** Images retagged to the sentinel. */
+  reassignedImages: number;
+  /** Distinct products those images belong to (now needing review). */
+  affectedProducts: number;
+}
