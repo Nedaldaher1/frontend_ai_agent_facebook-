@@ -87,6 +87,7 @@ function App() {
                     <Route index element={<KnowledgeList />} />
                     <Route path="create" element={<KnowledgeCreate />} />
                     <Route path="edit/:id" element={<KnowledgeEdit />} />
+                  </Route>
                   <Route path="/colors">
                     <Route index element={<ColorList />} />
                     <Route path="create" element={<ColorCreate />} />
