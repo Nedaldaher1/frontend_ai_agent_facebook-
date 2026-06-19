@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import {
-  useDelete,
+  useInvalidate,
   useList,
   useNavigation,
   useUpdate,
@@ -9,6 +11,7 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
+  Loader2,
   Palette,
   Plus,
   RotateCw,
@@ -38,7 +41,9 @@ import {
   ColorsTable,
   ColorsTableSkeleton,
 } from "@/components/colors/colors-table";
-import type { Color, ColorSynonym } from "@/types/color";
+import { deleteColorById, fetchColorUsage } from "@/providers/colors-data";
+import { useInvalidateUnassignedUsage } from "@/hooks/use-unassigned-colors";
+import type { Color, ColorSynonym, ColorUsage } from "@/types/color";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 12;
@@ -55,6 +60,10 @@ export const ColorList = () => {
   const [status, setStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<Color | null>(null);
+  const [usage, setUsage] = useState<ColorUsage | null>(null);
+  const [usageLoading, setUsageLoading] = useState(false);
+  const [usageError, setUsageError] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState<Color["id"] | null>(null);
 
   useEffect(() => {
@@ -110,7 +119,9 @@ export const ColorList = () => {
   );
 
   const { mutate: updateColor } = useUpdate();
-  const { mutate: deleteColor } = useDelete();
+  const invalidate = useInvalidate();
+  const invalidateUnassigned = useInvalidateUnassignedUsage();
+  const navigate = useNavigate();
 
   const resetPage = () => setCurrentPage(1);
 
@@ -136,37 +147,73 @@ export const ColorList = () => {
     );
   };
 
-  const handleConfirmDelete = () => {
-    if (!deleteTarget) return;
-    deleteColor(
-      {
+  // Deleting always starts by fetching the impact report, so the dialog can warn
+  // exactly how many products will be retagged to «غير معرف» (CLAUDE.md §6).
+  const loadUsage = async (color: Color) => {
+    setUsage(null);
+    setUsageError(false);
+    setUsageLoading(true);
+    try {
+      setUsage(await fetchColorUsage(color.id));
+    } catch {
+      setUsageError(true);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
+
+  const openDelete = (color: Color) => {
+    setDeleteTarget(color);
+    void loadUsage(color);
+  };
+
+  const closeDelete = () => {
+    if (deleting) return;
+    setDeleteTarget(null);
+    setUsage(null);
+    setUsageError(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget || !usage) return;
+    setDeleting(true);
+    try {
+      const result = await deleteColorById(deleteTarget.id);
+      // Refresh the table and the review queue/badge so the queue self-drains.
+      invalidate({
         resource: "colors",
         dataProviderName: "colors",
-        id: deleteTarget.id,
-        successNotification: { type: "success", message: "تم حذف اللون" },
-        // A 409 means the color is still attached to product images
-        // (ON DELETE RESTRICT) — guide the user to deactivate instead.
-        errorNotification: (error) => {
-          const status = (error as HttpError | undefined)?.statusCode;
-          if (status === 409) {
-            return {
-              type: "error",
-              message:
-                "لا يمكن حذف لون مرتبط بصور منتجات. أزِل اللون من الصور أولاً، أو عطّله بدل حذفه.",
-            };
-          }
-          return {
-            type: "error",
-            message:
-              (error as HttpError | undefined)?.message ?? "تعذّر حذف اللون",
-          };
-        },
-      },
-      {
-        onSuccess: () => setDeleteTarget(null),
-        onError: () => setDeleteTarget(null),
-      },
-    );
+        invalidates: ["list"],
+      });
+      void invalidateUnassigned();
+
+      if (usage.productCount > 0) {
+        toast.success(
+          `تم الحذف. ${result.reassignedImages} صورة في ${result.affectedProducts} منتج تحتاج مراجعة.`,
+          {
+            richColors: true,
+            action: {
+              label: "مراجعة",
+              onClick: () => navigate("/colors/review"),
+            },
+          },
+        );
+      } else {
+        toast.success("تم حذف اللون", { richColors: true });
+      }
+
+      setDeleteTarget(null);
+      setUsage(null);
+    } catch (error) {
+      const status = (error as HttpError | undefined)?.statusCode;
+      const message =
+        status === 409
+          ? "تعذّر الحذف بسبب تعديل متزامن، حاول مجددًا."
+          : ((error as HttpError | undefined)?.message ?? "تعذّر حذف اللون");
+      toast.error(message, { richColors: true });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -245,7 +292,7 @@ export const ColorList = () => {
             pendingId={togglingId}
             onEdit={(id) => edit("colors", id)}
             onToggle={handleToggle}
-            onDelete={(c) => setDeleteTarget(c)}
+            onDelete={openDelete}
           />
           {pageCount > 1 && (
             <Pagination
@@ -257,39 +304,128 @@ export const ColorList = () => {
         </>
       )}
 
-      {/* Delete confirmation */}
+      {/* Delete confirmation — always preceded by the impact check */}
       <AlertDialog
         open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onOpenChange={(open) => !open && closeDelete()}
       >
-        <AlertDialogContent className="max-w-[400px] rounded-[20px] p-[26px]">
+        <AlertDialogContent className="max-w-[430px] rounded-[20px] p-[26px]">
           <div className="mb-4 flex size-[52px] items-center justify-center rounded-[15px] border border-[#F2D6D6] bg-[#FBEDED] text-[#C0392B]">
-            <Trash2 className="size-5" />
+            {usageLoading ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <Trash2 className="size-5" />
+            )}
           </div>
-          <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
-            حذف اللون؟
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
-            سيتم حذف «
-            <span className="font-semibold text-[#4A4E57]">
-              {deleteTarget?.name}
-            </span>
-            » <span className="font-semibold">ومصطلحاته</span> نهائياً. لا يمكن
-            التراجع. إن كان اللون مستخدماً في صور منتجات فلن يُحذف — عطّله بدلاً من
-            ذلك.
-          </AlertDialogDescription>
-          <AlertDialogFooter className="mt-[22px] gap-2.5 sm:justify-stretch">
-            <Button
-              variant="destructive"
-              className="h-auto flex-1 rounded-[12px] py-[11px] font-semibold"
-              onClick={handleConfirmDelete}
-            >
-              نعم، احذف
-            </Button>
-            <AlertDialogCancel className="m-0 h-auto flex-1 rounded-[12px] py-[11px] font-semibold">
-              تراجع
-            </AlertDialogCancel>
-          </AlertDialogFooter>
+
+          {usageLoading ? (
+            <>
+              <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+                جارٍ التحقق من تأثير الحذف…
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+                نتأكد من عدد المنتجات المرتبطة بهذا اللون قبل الحذف.
+              </AlertDialogDescription>
+            </>
+          ) : usageError ? (
+            <>
+              <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+                تعذّر جلب تأثير الحذف
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+                حدث خطأ أثناء التحقق من المنتجات المرتبطة. حاول مرّة أخرى.
+              </AlertDialogDescription>
+              <AlertDialogFooter className="mt-[22px] gap-2.5 sm:justify-stretch">
+                <Button
+                  variant="outline"
+                  className="h-auto flex-1 rounded-[12px] py-[11px] font-semibold"
+                  onClick={() => deleteTarget && loadUsage(deleteTarget)}
+                >
+                  <RotateCw className="size-4" />
+                  إعادة المحاولة
+                </Button>
+                <AlertDialogCancel className="m-0 h-auto flex-1 rounded-[12px] py-[11px] font-semibold">
+                  تراجع
+                </AlertDialogCancel>
+              </AlertDialogFooter>
+            </>
+          ) : usage && usage.productCount > 0 ? (
+            <>
+              <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+                {usage.productCount} منتج يستخدم هذا اللون
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+                عند الحذف ستتحوّل صور هذه المنتجات إلى «غير معرف» وستحتاج مراجعة
+                يدوية لتعيين لون جديد.
+              </AlertDialogDescription>
+              <div className="mt-3 max-h-[168px] overflow-y-auto rounded-[12px] border border-[#ECEDF1] bg-[#FAFAFB] p-1.5">
+                <ul className="flex flex-col">
+                  {usage.products.map((p) => (
+                    <li
+                      key={p.id}
+                      className="truncate rounded-[8px] px-2.5 py-[7px] text-[13px] font-medium text-[#3A3E47]"
+                    >
+                      {p.name}
+                    </li>
+                  ))}
+                  {usage.hasMore &&
+                    usage.productCount - usage.products.length > 0 && (
+                      <li className="px-2.5 py-[7px] text-[12.5px] font-semibold text-[#7A7F88]">
+                        و+{usage.productCount - usage.products.length} غيرها
+                      </li>
+                    )}
+                </ul>
+              </div>
+              <AlertDialogFooter className="mt-[22px] gap-2.5 sm:justify-stretch">
+                <Button
+                  variant="destructive"
+                  disabled={deleting}
+                  className="h-auto flex-1 rounded-[12px] py-[11px] font-semibold"
+                  onClick={handleConfirmDelete}
+                >
+                  {deleting && <Loader2 className="size-4 animate-spin" />}
+                  حذف وتحويل إلى غير معرف
+                </Button>
+                <AlertDialogCancel
+                  disabled={deleting}
+                  className="m-0 h-auto flex-1 rounded-[12px] py-[11px] font-semibold"
+                >
+                  تراجع
+                </AlertDialogCancel>
+              </AlertDialogFooter>
+            </>
+          ) : (
+            <>
+              <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+                حذف اللون؟
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+                سيتم حذف «
+                <span className="font-semibold text-[#4A4E57]">
+                  {deleteTarget?.name}
+                </span>
+                » <span className="font-semibold">ومصطلحاته</span> نهائياً. لا
+                يمكن التراجع.
+              </AlertDialogDescription>
+              <AlertDialogFooter className="mt-[22px] gap-2.5 sm:justify-stretch">
+                <Button
+                  variant="destructive"
+                  disabled={deleting}
+                  className="h-auto flex-1 rounded-[12px] py-[11px] font-semibold"
+                  onClick={handleConfirmDelete}
+                >
+                  {deleting && <Loader2 className="size-4 animate-spin" />}
+                  نعم، احذف
+                </Button>
+                <AlertDialogCancel
+                  disabled={deleting}
+                  className="m-0 h-auto flex-1 rounded-[12px] py-[11px] font-semibold"
+                >
+                  تراجع
+                </AlertDialogCancel>
+              </AlertDialogFooter>
+            </>
+          )}
         </AlertDialogContent>
       </AlertDialog>
     </div>
