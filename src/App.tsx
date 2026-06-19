@@ -26,6 +26,7 @@ import {
   colorsDataProvider,
   colorSynonymsDataProvider,
 } from "./providers/colors-data";
+import { ordersDataProvider } from "./providers/orders-data";
 
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
@@ -42,6 +43,7 @@ import {
   ColorList,
   ColorReview,
 } from "./pages/colors";
+import { OrderList, OrderShow } from "./pages/orders";
 
 function App() {
   return (
@@ -55,6 +57,7 @@ function App() {
                 knowledge: knowledgeDataProvider,
                 colors: colorsDataProvider,
                 colorSynonyms: colorSynonymsDataProvider,
+                orders: ordersDataProvider,
               }}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
@@ -101,6 +104,10 @@ function App() {
                     <Route path="create" element={<ColorCreate />} />
                     <Route path="review" element={<ColorReview />} />
                     <Route path="edit/:id" element={<ColorEdit />} />
+                  </Route>
+                  <Route path="/orders">
+                    <Route index element={<OrderList />} />
+                    <Route path="show/:id" element={<OrderShow />} />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>

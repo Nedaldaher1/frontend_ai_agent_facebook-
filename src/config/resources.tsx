@@ -4,7 +4,7 @@
  * Adding a resource here makes it appear in the sidebar (via `useMenu`) and
  * wires its routes/labels. Keep route paths in sync with the <Route> tree in
  * `src/App.tsx`. "Soon" entries are visible-but-disabled placeholders for the
- * next phases (orders, chats, settings) and intentionally have no routes.
+ * next phases (conversations, settings) and intentionally have no routes.
  */
 
 import type { ResourceProps } from "@refinedev/core";
@@ -49,11 +49,16 @@ export const resources: ResourceProps[] = [
       icon: <Palette className="size-4" />,
     },
   },
-  // --- Phase 2+ placeholders (not yet routed) ---
   {
     name: "orders",
-    meta: { label: "الطلبات", icon: <ShoppingBag className="size-4" /> },
+    list: "/orders",
+    show: "/orders/show/:id",
+    meta: {
+      label: "الطلبات",
+      icon: <ShoppingBag className="size-4" />,
+    },
   },
+  // --- Phase 2+ placeholders (not yet routed) ---
   {
     name: "conversations",
     meta: { label: "المحادثات", icon: <MessageCircle className="size-4" /> },
