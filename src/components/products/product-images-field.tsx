@@ -25,7 +25,7 @@ import {
 import { tint } from "@/constants/theme";
 import type { Color } from "@/types/color";
 import type { ProductImage } from "@/types/product";
-import { isUnassignedColor } from "@/lib/colors";
+import { colorDisplayName, isUnassignedColor } from "@/lib/colors";
 import { useResolvedColors } from "@/hooks/use-resolved-colors";
 import { cn } from "@/lib/utils";
 import { ErrorText, FormCard, Hint, RequiredBadge, SectionHeader } from "./product-form-ui";
@@ -220,7 +220,7 @@ function GalleryItem({
         {image.url && (
           <img
             src={image.url}
-            alt={selected?.name || "صورة المنتج"}
+            alt={colorDisplayName(selected) || "صورة المنتج"}
             className="size-full object-cover"
           />
         )}
