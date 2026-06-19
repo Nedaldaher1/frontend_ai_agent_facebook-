@@ -5,9 +5,10 @@
  *
  * Key impedance mismatches handled here:
  *  - `stockStatus`: UI `in|out|soon` ⟷ API `in_stock|out|low`.
- *  - colour: UI tracks a colour per image variant; the API stores a single
- *    `colorFamily`. We send the first variant's colour as `colorFamily` and
- *    round-trip the full per-image list inside `attributes.imageColors`.
+ *  - colour: UI tracks a color id (UUID) per image variant; the API stores a
+ *    single `colorFamily`. The form resolves the first variant's id to its
+ *    family for `colorFamily`, and we round-trip the per-image color ids inside
+ *    `attributes.imageColors` so the gallery can re-select them on edit.
  *  - sizes / weights / measurements: the API `sizes` is a bare `string[]`, so
  *    the bracket selection + weight ranges + body measurements live in the free
  *    `attributes` jsonb (spec §5.4).
@@ -57,7 +58,7 @@ type StoredAttributes = {
     maxWeight?: number | null;
   };
   measurements?: ProductMeasurements;
-  /** Per-variant colours, aligned to image order (index 0 = primary). */
+  /** Per-variant color ids (UUIDs), aligned to image order (index 0 = primary). */
   imageColors?: (string | null)[];
 };
 
@@ -122,7 +123,7 @@ const buildImages = (
       id: it.key,
       key: it.key,
       url: it.url,
-      color: (colors[i] ?? "") as ProductImage["color"],
+      color: colors[i] ?? "",
       isMain: it.isPrimary,
       analyzed: true,
     }));
@@ -130,7 +131,7 @@ const buildImages = (
   return (dto.imageUrls ?? []).map((url, i) => ({
     id: i + 1,
     url,
-    color: (colors[i] ?? "") as ProductImage["color"],
+    color: colors[i] ?? "",
     isMain: i === 0,
     analyzed: true,
   }));

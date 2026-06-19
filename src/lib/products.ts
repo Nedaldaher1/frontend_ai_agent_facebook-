@@ -20,11 +20,21 @@ import type {
   ProductImage,
 } from "@/types/product";
 
-/** Distinct, non-empty colors across a product's image variants, in order. */
-export function uniqueColors(images: ProductImage[]): ColorValue[] {
+/**
+ * Distinct, non-empty color families across a product's image variants, in
+ * order. Each image stores a color id (UUID); `resolveFamily` maps that id to
+ * its closed-enum family key — the value `color_family` and the preview swatches
+ * are derived from. Ids that no longer resolve (e.g. a deleted color) are
+ * skipped.
+ */
+export function uniqueColors(
+  images: ProductImage[],
+  resolveFamily: (colorId: string) => ColorValue | "",
+): ColorValue[] {
   const seen = new Set<ColorValue>();
   for (const img of images) {
-    if (img.color) seen.add(img.color);
+    const family = img.color ? resolveFamily(img.color) : "";
+    if (family) seen.add(family);
   }
   return [...seen];
 }
@@ -112,16 +122,21 @@ export function productToFormValues(product: Product): ProductFormValues {
   };
 }
 
-/** Build the create/update payload, deriving colors + publish status. */
+/**
+ * Build the create/update payload, deriving colors + publish status.
+ * `resolveFamily` turns each image's color id into its enum family so the
+ * product's `color_family` stays the closed-enum key (not a UUID).
+ */
 export function formValuesToPayload(
   values: ProductFormValues,
   publish: boolean,
+  resolveFamily: (colorId: string) => ColorValue | "",
 ): Partial<Product> {
   return {
     name: values.name.trim(),
     description: values.description.trim() || undefined,
     price: values.price.trim(),
-    colors: uniqueColors(values.images),
+    colors: uniqueColors(values.images, resolveFamily),
     sizes: values.sizes,
     maxWeight: values.maxWeight.trim() || undefined,
     measurements: values.measurements,

@@ -35,7 +35,11 @@ export type SizeId = (typeof SIZE_CATALOG)[number]["id"];
 export interface ProductImage {
   id: number | string;
   url?: string;
-  color: ColorValue | "";
+  /**
+   * The selected color's backend id (UUID), or "" when untagged. Resolved to a
+   * `color_family` / swatch via the `colors` resource — never an enum key.
+   */
+  color: string;
   isMain?: boolean;
   analyzed: boolean;
   hasEmbedding?: boolean;

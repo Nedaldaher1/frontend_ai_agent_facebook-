@@ -8,9 +8,14 @@
  * react-hook-form so the live preview can `watch()` everything.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "@refinedev/react-hook-form";
-import { useNavigation, useNotification, type HttpError } from "@refinedev/core";
+import {
+  useList,
+  useNavigation,
+  useNotification,
+  type HttpError,
+} from "@refinedev/core";
 import { ArrowRight } from "lucide-react";
 
 import {
@@ -34,6 +39,7 @@ import type {
   SizeId,
   StockStatus,
 } from "@/types/product";
+import type { Color } from "@/types/color";
 import { ProductDetailsFields } from "./product-details-fields";
 import { ProductFormAside } from "./product-form-aside";
 import { ProductImagesField } from "./product-images-field";
@@ -87,6 +93,22 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
   const values = watch();
   const errors = showErrors ? validateProductForm(values) : NO_ERRORS;
 
+  // Each image stores a color id (UUID). The product's `color_family` and the
+  // live preview need the enum family + swatch, so fetch the colors once here
+  // and resolve id → family — keeping the colors table out of the pure mappers
+  // and the preview atoms (CLAUDE.md §6).
+  const { result: colorsResult } = useList<Color>({
+    resource: "colors",
+    dataProviderName: "colors",
+    pagination: { currentPage: 1, pageSize: 500 },
+  });
+  const colorFamilyById = useMemo(() => {
+    const rows = Array.isArray(colorsResult?.data) ? colorsResult.data : [];
+    const byId = new Map(rows.map((c) => [c.id, c.family]));
+    return (colorId: string): ColorValue | "" =>
+      ((colorId && byId.get(colorId)) || "") as ColorValue | "";
+  }, [colorsResult]);
+
   // --- image handlers ---------------------------------------------------
   const addImage = (file?: File) => {
     const id = Date.now();
@@ -126,7 +148,7 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
     });
   };
 
-  const setImageColor = (id: ProductImage["id"], color: ColorValue | "") =>
+  const setImageColor = (id: ProductImage["id"], color: string) =>
     setValue(
       "images",
       getValues("images").map((im) => (im.id === id ? { ...im, color } : im)),
@@ -194,7 +216,9 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
     }
     // onFinish forwards the payload to the data provider; the form's TVariables
     // is the editable shape, so the mapped payload is cast through.
-    onFinish(formValuesToPayload(v, publish) as unknown as ProductFormValues);
+    onFinish(
+      formValuesToPayload(v, publish, colorFamilyById) as unknown as ProductFormValues,
+    );
   };
 
   // --- edit loading / error states --------------------------------------
@@ -249,6 +273,7 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
 
         <ProductFormAside
           values={values}
+          colorFamilyOf={colorFamilyById}
           submitting={formLoading}
           onTogglePublish={(v) => setValue("published", v)}
           onPublish={() => submit(true)}

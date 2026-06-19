@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { brand } from "@/constants/theme";
 import { uniqueColors } from "@/lib/products";
-import type { ProductFormValues } from "@/types/product";
+import type { ColorValue, ProductFormValues } from "@/types/product";
 import {
   ColorDots,
   Price,
@@ -21,6 +21,8 @@ import {
 
 type ProductFormAsideProps = {
   values: ProductFormValues;
+  /** Resolve an image's color id (UUID) → its enum family for the preview. */
+  colorFamilyOf: (colorId: string) => ColorValue | "";
   submitting?: boolean;
   onTogglePublish: (published: boolean) => void;
   onPublish: () => void;
@@ -33,14 +35,15 @@ const primaryBtnClass =
 
 export function ProductFormAside({
   values,
+  colorFamilyOf,
   submitting,
   onTogglePublish,
   onPublish,
   onSaveDraft,
   onCancel,
 }: ProductFormAsideProps) {
-  const colors = uniqueColors(values.images);
-  const firstColor = values.images[0]?.color || undefined;
+  const colors = uniqueColors(values.images, colorFamilyOf);
+  const firstColor = colorFamilyOf(values.images[0]?.color ?? "") || undefined;
   const published = values.published;
 
   return (

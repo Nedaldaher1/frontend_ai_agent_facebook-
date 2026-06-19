@@ -3,13 +3,17 @@
  * abaya: upload an image, tag it with a color, and the card reflects Vision's
  * per-image analysis state (and the Phase 2 embedding placeholder).
  *
- * Improvement over the static prototype: the upload button accepts a real file
- * and previews it via an object URL, so the gallery isn't just colored boxes.
- * (Persisting the file to storage is a backend TODO — see ProductForm.)
+ * The color dropdown is sourced live from the `colors` resource (the same
+ * vocabulary managed on the Colors page) via `useSelect`, so a color added there
+ * appears here with no code change. The selected value is the color id (UUID),
+ * never the Arabic name — it round-trips through the image's `color` and feeds
+ * the per-image color tagging on save (CLAUDE.md §6).
  */
 
-import { useRef } from "react";
-import { Loader2, Star, Upload, X } from "lucide-react";
+import { useMemo, useRef } from "react";
+import { Link } from "react-router";
+import { useSelect } from "@refinedev/core";
+import { Loader2, RotateCw, Star, TriangleAlert, Upload, X } from "lucide-react";
 
 import {
   Select,
@@ -18,11 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { COLORS, colorHex } from "@/constants/enums";
 import { tint } from "@/constants/theme";
-import type { ColorValue, ProductImage } from "@/types/product";
+import type { Color } from "@/types/color";
+import type { ProductImage } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { ErrorText, FormCard, Hint, RequiredBadge, SectionHeader } from "./product-form-ui";
+
+/** Neutral swatch when a color has no hex, or no color is selected yet. */
+const NEUTRAL_HEX = "#C7CBD2";
+
+/** Shared state of the live colors fetch, surfaced on every image's dropdown. */
+type ColorsStatus = "loading" | "error" | "empty" | "ready";
 
 type ProductImagesFieldProps = {
   images: ProductImage[];
@@ -30,7 +40,7 @@ type ProductImagesFieldProps = {
   onAdd: (file?: File) => void;
   onRemove: (id: ProductImage["id"]) => void;
   onSetMain: (id: ProductImage["id"]) => void;
-  onSetColor: (id: ProductImage["id"], color: ColorValue | "") => void;
+  onSetColor: (id: ProductImage["id"], colorId: string) => void;
 };
 
 export function ProductImagesField({
@@ -43,6 +53,35 @@ export function ProductImagesField({
 }: ProductImagesFieldProps) {
   const fileInput = useRef<HTMLInputElement>(null);
 
+  // Live color vocabulary from GET /admin/colors (the `colors` named provider).
+  const { query } = useSelect<Color>({
+    resource: "colors",
+    dataProviderName: "colors",
+    optionLabel: "name",
+    optionValue: "id",
+    sorters: [{ field: "name", order: "asc" }],
+    pagination: { mode: "off" },
+  });
+
+  // The colors provider sorts client-side, so order the records here.
+  const colors = useMemo<Color[]>(() => {
+    const rows = query.data?.data ?? [];
+    return [...rows].sort((a, b) => a.name.localeCompare(b.name, "ar"));
+  }, [query.data]);
+  const colorsById = useMemo(
+    () => new Map(colors.map((c) => [c.id, c] as const)),
+    [colors],
+  );
+
+  const { isLoading, isError, refetch } = query;
+  const status: ColorsStatus = isLoading
+    ? "loading"
+    : isError
+      ? "error"
+      : colors.length === 0
+        ? "empty"
+        : "ready";
+
   return (
     <FormCard>
       <SectionHeader step="١" title="صور المنتج وألوانه" badge={<RequiredBadge />} />
@@ -51,6 +90,41 @@ export function ProductImagesField({
         القائمة.
       </Hint>
       {error && <ErrorText>يجب رفع صورة واحدة على الأقل</ErrorText>}
+
+      {status === "error" && (
+        <div
+          dir="rtl"
+          className="mt-2 flex items-center justify-between gap-3 rounded-[11px] border border-[#F2DCDC] bg-[#FBEDED] px-3 py-2.5 text-xs font-medium text-[#C0392B]"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <TriangleAlert className="size-3.5" />
+            تعذّر تحميل الألوان
+          </span>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="inline-flex items-center gap-1 rounded-[8px] border border-[#E7C3C3] bg-card px-2.5 py-1 font-semibold text-[#C0392B] transition-colors hover:bg-[#FBEDED]"
+          >
+            <RotateCw className="size-3" />
+            إعادة المحاولة
+          </button>
+        </div>
+      )}
+      {status === "empty" && (
+        <div
+          dir="rtl"
+          className="mt-2 rounded-[11px] border border-[#EDEEF1] bg-[#F7F8FA] px-3 py-2.5 text-xs leading-relaxed text-[#7A7F88]"
+        >
+          لا توجد ألوان بعد — أضِفها من{" "}
+          <Link
+            to="/colors"
+            className="font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            صفحة الألوان
+          </Link>{" "}
+          أولًا.
+        </div>
+      )}
 
       <input
         ref={fileInput}
@@ -79,6 +153,9 @@ export function ProductImagesField({
             key={img.id}
             image={img}
             isMain={i === 0}
+            colors={colors}
+            colorsById={colorsById}
+            status={status}
             onRemove={() => onRemove(img.id)}
             onSetMain={() => onSetMain(img.id)}
             onSetColor={(c) => onSetColor(img.id, c)}
@@ -92,18 +169,33 @@ export function ProductImagesField({
 function GalleryItem({
   image,
   isMain,
+  colors,
+  colorsById,
+  status,
   onRemove,
   onSetMain,
   onSetColor,
 }: {
   image: ProductImage;
   isMain: boolean;
+  colors: Color[];
+  colorsById: Map<string, Color>;
+  status: ColorsStatus;
   onRemove: () => void;
   onSetMain: () => void;
-  onSetColor: (color: ColorValue | "") => void;
+  onSetColor: (colorId: string) => void;
 }) {
-  const hex = image.color ? colorHex(image.color) : "#C7CBD2";
-  const isWhite = hex.toUpperCase() === "#FFFFFF";
+  const selected = image.color ? colorsById.get(image.color) : undefined;
+  const hex = selected?.hex ?? NEUTRAL_HEX;
+
+  const placeholder =
+    status === "loading"
+      ? "جاري تحميل الألوان…"
+      : status === "error"
+        ? "تعذّر تحميل الألوان"
+        : status === "empty"
+          ? "لا توجد ألوان"
+          : "— اختر —";
 
   return (
     <div className="w-[120px]">
@@ -118,7 +210,7 @@ function GalleryItem({
         {image.url && (
           <img
             src={image.url}
-            alt={image.color || "صورة المنتج"}
+            alt={selected?.name || "صورة المنتج"}
             className="size-full object-cover"
           />
         )}
@@ -141,31 +233,36 @@ function GalleryItem({
 
       <div className="mt-2">
         <div className="mb-[5px] flex items-center gap-1.5">
-          <span
-            className="inline-block size-3 rounded-full border"
-            style={{
-              background: hex,
-              borderColor: isWhite ? "#DADDE2" : "rgba(0,0,0,.16)",
-            }}
-          />
+          <Swatch hex={hex} />
           <span className="text-[10.5px] font-semibold text-[#7A7F88]">
             لون هذه الصورة
           </span>
         </div>
         <Select
+          dir="rtl"
           value={image.color || undefined}
-          onValueChange={(v) => onSetColor(v as ColorValue)}
+          onValueChange={onSetColor}
+          disabled={status !== "ready"}
         >
           <SelectTrigger
+            dir="rtl"
             size="sm"
             className="h-auto w-full rounded-[9px] border-[#E2E4E9] bg-card px-2.5 py-[7px] text-xs font-medium text-[#3A3E47]"
           >
-            <SelectValue placeholder="— اختر —" />
+            <SelectValue placeholder={placeholder} />
           </SelectTrigger>
-          <SelectContent>
-            {COLORS.map((c) => (
-              <SelectItem key={c.value} value={c.value}>
-                {c.label}
+          <SelectContent dir="rtl">
+            {colors.map((c) => (
+              <SelectItem
+                key={c.id}
+                value={c.id}
+                disabled={!c.isActive}
+                className="text-xs"
+              >
+                <span className="flex items-center gap-2">
+                  <Swatch hex={c.hex ?? NEUTRAL_HEX} />
+                  {c.isActive ? c.name : `${c.name} (معطّل)`}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -190,6 +287,20 @@ function GalleryItem({
         </span>
       </div>
     </div>
+  );
+}
+
+/** A round color swatch, white-aware so it stays visible on white surfaces. */
+function Swatch({ hex }: { hex: string }) {
+  const isWhite = hex.toUpperCase() === "#FFFFFF";
+  return (
+    <span
+      className="inline-block size-3 shrink-0 rounded-full border"
+      style={{
+        background: hex,
+        borderColor: isWhite ? "#DADDE2" : "rgba(0,0,0,.16)",
+      }}
+    />
   );
 }
 
