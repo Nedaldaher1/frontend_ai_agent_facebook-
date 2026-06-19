@@ -25,6 +25,8 @@ import {
 import { tint } from "@/constants/theme";
 import type { Color } from "@/types/color";
 import type { ProductImage } from "@/types/product";
+import { isUnassignedColor } from "@/lib/colors";
+import { useResolvedColors } from "@/hooks/use-resolved-colors";
 import { cn } from "@/lib/utils";
 import { ErrorText, FormCard, Hint, RequiredBadge, SectionHeader } from "./product-form-ui";
 
@@ -72,6 +74,12 @@ export function ProductImagesField({
     () => new Map(colors.map((c) => [c.id, c] as const)),
     [colors],
   );
+
+  // An image retagged to the deleted-color sentinel carries an id absent from
+  // the assignable list (the list excludes system colors). Resolve those ids by
+  // id so the dropdown can flag «غير معرف» on the affected image.
+  const imageColorIds = useMemo(() => images.map((im) => im.color), [images]);
+  const resolvedColors = useResolvedColors(imageColorIds, colorsById);
 
   const { isLoading, isError, refetch } = query;
   const status: ColorsStatus = isLoading
@@ -154,7 +162,7 @@ export function ProductImagesField({
             image={img}
             isMain={i === 0}
             colors={colors}
-            colorsById={colorsById}
+            resolved={resolvedColors}
             status={status}
             onRemove={() => onRemove(img.id)}
             onSetMain={() => onSetMain(img.id)}
@@ -170,7 +178,7 @@ function GalleryItem({
   image,
   isMain,
   colors,
-  colorsById,
+  resolved,
   status,
   onRemove,
   onSetMain,
@@ -179,13 +187,15 @@ function GalleryItem({
   image: ProductImage;
   isMain: boolean;
   colors: Color[];
-  colorsById: Map<string, Color>;
+  resolved: Map<string, Color>;
   status: ColorsStatus;
   onRemove: () => void;
   onSetMain: () => void;
   onSetColor: (colorId: string) => void;
 }) {
-  const selected = image.color ? colorsById.get(image.color) : undefined;
+  const selected = image.color ? resolved.get(image.color) : undefined;
+  // Keyed off `family` (never the stored name): this image needs a real color.
+  const isUnassigned = isUnassignedColor(selected);
   const hex = selected?.hex ?? NEUTRAL_HEX;
 
   const placeholder =
@@ -247,11 +257,25 @@ function GalleryItem({
           <SelectTrigger
             dir="rtl"
             size="sm"
-            className="h-auto w-full rounded-[9px] border-[#E2E4E9] bg-card px-2.5 py-[7px] text-xs font-medium text-[#3A3E47]"
+            className={cn(
+              "h-auto w-full rounded-[9px] border-[#E2E4E9] bg-card px-2.5 py-[7px] text-xs font-medium text-[#3A3E47]",
+              isUnassigned && "border-[#E2A33A] bg-[#FBF7EE]",
+            )}
           >
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent dir="rtl">
+            {/* The sentinel is never offered as a NEW choice (it's excluded from
+                the options); it renders only as a disabled item so the current
+                value shows. Label is hardcoded off family — never the stored name. */}
+            {isUnassigned && image.color && (
+              <SelectItem value={image.color} disabled className="text-xs">
+                <span className="flex items-center gap-2">
+                  <Swatch hex={NEUTRAL_HEX} />
+                  غير معرف (يحتاج تعيين)
+                </span>
+              </SelectItem>
+            )}
             {colors.map((c) => (
               <SelectItem
                 key={c.id}
@@ -267,6 +291,12 @@ function GalleryItem({
             ))}
           </SelectContent>
         </Select>
+        {isUnassigned && (
+          <p className="mt-1 flex items-center gap-1 text-[10.5px] font-medium text-[#9A6B12]">
+            <TriangleAlert className="size-3" />
+            اختر لونًا صحيحًا لهذه الصورة
+          </p>
+        )}
       </div>
 
       <div className="mt-[7px] flex flex-col gap-1">
