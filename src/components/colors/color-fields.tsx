@@ -52,7 +52,7 @@ export function ColorFields({
           <Input
             {...register("name")}
             placeholder="مثال: أحمر"
-            className={cn(fieldClass, errors.name && "border-[#E3A6A6]")}
+            className={cn(fieldClass, errors.name && "border-danger-line")}
           />
           {errors.name ? (
             <ErrorText>{errors.name}</ErrorText>
@@ -74,7 +74,7 @@ export function ColorFields({
             className={cn(
               fieldClass,
               "text-start font-mono",
-              errors.family && "border-[#E3A6A6]",
+              errors.family && "border-danger-line",
             )}
           />
           {errors.family ? (
@@ -96,17 +96,17 @@ export function ColorFields({
               value={pickerValue}
               onChange={(e) => onHex(e.target.value)}
               aria-label="منتقي اللون"
-              className="size-[42px] shrink-0 cursor-pointer rounded-[11px] border border-[#E2E4E9] bg-card p-1"
+              className="size-[42px] shrink-0 cursor-pointer rounded-[11px] border border-line-2 bg-card p-1"
             />
             <Input
               {...register("hex")}
               dir="ltr"
               spellCheck={false}
-              placeholder="#B0212F"
+              placeholder="var(--danger-fg)"
               className={cn(
                 fieldClass,
                 "max-w-[170px] text-start font-mono uppercase",
-                errors.hex && "border-[#E3A6A6]",
+                errors.hex && "border-danger-line",
               )}
             />
           </div>

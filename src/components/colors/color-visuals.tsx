@@ -31,10 +31,10 @@ export function Swatch({
       <span
         aria-hidden
         title="بدون لون محدّد"
-        className={cn(base, "size-[22px] border-dashed border-[#CFD3DA]", className)}
+        className={cn(base, "size-[22px] border-dashed border-line-strong", className)}
         style={{
           background:
-            "repeating-linear-gradient(135deg,#F3F4F6 0 5px,#E9EBEF 5px 10px)",
+            "repeating-linear-gradient(135deg,var(--surface-1) 0 5px,var(--line) 5px 10px)",
         }}
       />
     );
@@ -46,8 +46,10 @@ export function Swatch({
       title={hex}
       className={cn(base, "size-[22px]", className)}
       style={{
+        // The fill is the literal product hex (a physical color sample — never
+        // themed); only the delineating ring adapts to the surface.
         background: hex,
-        borderColor: isWhite ? "#DADDE2" : "rgba(0,0,0,.14)",
+        borderColor: isWhite ? "var(--swatch-ring-white)" : "var(--swatch-ring)",
       }}
     />
   );
@@ -58,17 +60,25 @@ export function ColorStatusBadge({ active }: { active: boolean }) {
   return active ? (
     <span
       className={badgeClass}
-      style={{ color: "#1B7A4E", background: "#EAF6EF", borderColor: "#CDEBD9" }}
+      style={{
+        color: "var(--ok-fg)",
+        background: "var(--ok-bg)",
+        borderColor: "var(--ok-line)",
+      }}
     >
-      <span className="size-1.5 rounded-full bg-[#1FA463]" aria-hidden />
+      <span className="size-1.5 rounded-full bg-ok-dot" aria-hidden />
       مفعّل
     </span>
   ) : (
     <span
       className={badgeClass}
-      style={{ color: "#6B7079", background: "#F1F2F5", borderColor: "#E6E8EC" }}
+      style={{
+        color: "var(--neutral-fg)",
+        background: "var(--neutral-bg)",
+        borderColor: "var(--neutral-line)",
+      }}
     >
-      <span className="size-1.5 rounded-full bg-[#B6BAC2]" aria-hidden />
+      <span className="size-1.5 rounded-full bg-ink-faint" aria-hidden />
       معطّل
     </span>
   );
@@ -77,10 +87,10 @@ export function ColorStatusBadge({ active }: { active: boolean }) {
 /** Synonym-count badge. Zero terms renders a muted dash. */
 export function SynonymCountBadge({ count }: { count: number }) {
   if (count <= 0) {
-    return <span className="text-[13px] text-[#B7BBC3]">—</span>;
+    return <span className="text-[13px] text-ink-faint">—</span>;
   }
   return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[#D6DEF8] bg-[#EEF1FC] px-[10px] py-1 text-[11.5px] font-semibold text-primary">
+    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-accent-line bg-accent-soft px-[10px] py-1 text-[11.5px] font-semibold text-primary">
       {termsLabel(count)}
     </span>
   );

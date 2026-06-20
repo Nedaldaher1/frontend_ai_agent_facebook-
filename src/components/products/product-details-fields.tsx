@@ -26,7 +26,7 @@ import {
   STOCK_STATUSES,
   type EnumOption,
 } from "@/constants/enums";
-import { brand, tint } from "@/constants/theme";
+import { brand } from "@/constants/theme";
 import type { ProductFormErrors } from "@/lib/products";
 import type {
   ProductFormValues,
@@ -89,7 +89,7 @@ function InfoAndSizing({
           <Input
             {...register("name")}
             placeholder="مثال: عباية كلوش مطرّزة"
-            className={cn(fieldClass, errors.name && "border-[#E3A6A6]")}
+            className={cn(fieldClass, errors.name && "border-danger-line")}
           />
           {errors.name && <ErrorText>اسم المنتج مطلوب</ErrorText>}
         </div>
@@ -110,17 +110,17 @@ function InfoAndSizing({
             <div
               className={cn(
                 "flex items-center overflow-hidden rounded-[11px] border bg-card focus-within:border-primary",
-                errors.price ? "border-[#E3A6A6]" : "border-[#E2E4E9]",
+                errors.price ? "border-danger-line" : "border-line-2",
               )}
             >
               <input
                 {...register("price")}
                 inputMode="decimal"
                 placeholder="0.000"
-                className="min-w-0 flex-1 px-[13px] py-[11px] text-sm font-semibold text-[#14161B] outline-none"
+                className="min-w-0 flex-1 px-[13px] py-[11px] text-sm font-semibold text-ink outline-none"
                 style={{ fontFeatureSettings: "'tnum'" }}
               />
-              <span className="flex items-center self-stretch border-s border-[#EBECEF] px-3.5 text-[12.5px] font-semibold text-[#7A7F88]">
+              <span className="flex items-center self-stretch border-s border-line px-3.5 text-[12.5px] font-semibold text-ink-muted">
                 {brand.currency}
               </span>
             </div>
@@ -150,7 +150,7 @@ function InfoAndSizing({
         <div>
           <FieldLabel>
             المقاسات المتوفّرة{" "}
-            <span className="font-medium text-[#9197A0]">(حسب الوزن)</span>
+            <span className="font-medium text-ink-faint">(حسب الوزن)</span>
           </FieldLabel>
           <div className="grid grid-cols-1 gap-[9px] sm:grid-cols-2">
             {SIZE_CATALOG.map((sz) => {
@@ -164,11 +164,11 @@ function InfoAndSizing({
                   style={
                     active
                       ? {
-                          background: tint(brand.accent, 9),
-                          borderColor: tint(brand.accent, 46),
+                          background: "var(--accent-soft)",
+                          borderColor: "var(--accent-line)",
                           color: brand.accentDark,
                         }
-                      : { background: "#fff", borderColor: "#E6E8EC", color: "#3A3E47" }
+                      : { background: "var(--card)", borderColor: "var(--neutral-line)", color: "var(--ink-2)" }
                   }
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -177,8 +177,8 @@ function InfoAndSizing({
                       className={cn(
                         "flex size-[19px] shrink-0 items-center justify-center rounded-full text-[11px]",
                         active
-                          ? "bg-primary text-white"
-                          : "border-[1.5px] border-[#D4D7DD]",
+                          ? "bg-primary text-primary-foreground"
+                          : "border-[1.5px] border-line-2",
                       )}
                     >
                       {active ? "✓" : ""}
@@ -216,7 +216,7 @@ function InfoAndSizing({
         {/* optional measurements */}
         <div>
           <div className="mb-[9px] flex items-center gap-2">
-            <span className="text-[13px] font-semibold text-[#3A3E47]">
+            <span className="text-[13px] font-semibold text-ink-2">
               القياسات
             </span>
             <OptionalBadge />
@@ -283,7 +283,7 @@ function Attributes({
           </div>
         ))}
       </div>
-      <div className="mt-[13px] inline-flex items-center gap-1.5 text-[11px] text-[#9197A0]">
+      <div className="mt-[13px] inline-flex items-center gap-1.5 text-[11px] text-ink-faint">
         <Lock className="size-3" />
         قوائم محصورة لضمان اتساق القيم
       </div>
@@ -304,17 +304,17 @@ function Tags({
       <Hint>
         أوصاف حرّة تساعد المساعد الذكي على المطابقة — اضغط Enter للإضافة.
       </Hint>
-      <div className="mt-[13px] flex flex-wrap items-center gap-[7px] rounded-[11px] border border-[#E2E4E9] bg-card px-[11px] py-[9px] focus-within:border-primary">
+      <div className="mt-[13px] flex flex-wrap items-center gap-[7px] rounded-[11px] border border-line-2 bg-card px-[11px] py-[9px] focus-within:border-primary">
         {values.tags.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#D6DEF8] bg-[#EEF1FC] py-[5px] pe-2.5 ps-1.5 text-[12.5px] font-medium text-primary"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-accent-line bg-accent-soft py-[5px] pe-2.5 ps-1.5 text-[12.5px] font-medium text-primary"
           >
             <button
               type="button"
               onClick={() => onRemoveTag(tag)}
               aria-label={`إزالة ${tag}`}
-              className="text-[#7E94D8] transition-colors hover:text-primary"
+              className="text-[#7E94D8] transition-colors hover:text-primary dark:text-[#8ea6ee]"
             >
               ✕
             </button>
@@ -331,7 +331,7 @@ function Tags({
             }
           }}
           placeholder="أضف وسماً…"
-          className="min-w-[120px] flex-1 p-1 text-[13.5px] text-[#14161B] outline-none"
+          className="min-w-[120px] flex-1 p-1 text-[13.5px] text-ink outline-none"
         />
       </div>
     </FormCard>
@@ -356,10 +356,10 @@ function Chip({
         active
           ? {
               color: brand.accentDark,
-              background: tint(brand.accent, 12),
-              borderColor: tint(brand.accent, 40),
+              background: "var(--accent-soft)",
+              borderColor: "var(--accent-line)",
             }
-          : { color: "#6B7079", background: "#fff", borderColor: "#E2E4E9" }
+          : { color: "var(--neutral-fg)", background: "var(--card)", borderColor: "var(--line-2)" }
       }
     >
       {children}
@@ -372,17 +372,17 @@ const SuffixInput = React.forwardRef<
   React.ComponentProps<"input"> & { unit: string }
 >(({ unit, className, ...props }, ref) => {
   return (
-    <div className="flex items-center overflow-hidden rounded-[11px] border border-[#E2E4E9] bg-card focus-within:border-primary">
+    <div className="flex items-center overflow-hidden rounded-[11px] border border-line-2 bg-card focus-within:border-primary">
       <input
         ref={ref}
         {...props}
         className={cn(
-          "min-w-0 flex-1 px-[13px] py-[11px] text-sm font-semibold text-[#14161B] outline-none",
+          "min-w-0 flex-1 px-[13px] py-[11px] text-sm font-semibold text-ink outline-none",
           className,
         )}
         style={{ fontFeatureSettings: "'tnum'" }}
       />
-      <span className="flex items-center self-stretch border-s border-[#EBECEF] px-3 text-xs font-semibold text-[#7A7F88]">
+      <span className="flex items-center self-stretch border-s border-line px-3 text-xs font-semibold text-ink-muted">
         {unit}
       </span>
     </div>
@@ -401,7 +401,7 @@ function Measurement({
 }) {
   return (
     <div>
-      <div className="mb-1.5 text-xs text-[#7A7F88]">{label}</div>
+      <div className="mb-1.5 text-xs text-ink-muted">{label}</div>
       <SuffixInput
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}

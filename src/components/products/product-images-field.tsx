@@ -102,7 +102,7 @@ export function ProductImagesField({
       {status === "error" && (
         <div
           dir="rtl"
-          className="mt-2 flex items-center justify-between gap-3 rounded-[11px] border border-[#F2DCDC] bg-[#FBEDED] px-3 py-2.5 text-xs font-medium text-[#C0392B]"
+          className="mt-2 flex items-center justify-between gap-3 rounded-[11px] border border-danger-line bg-danger-bg px-3 py-2.5 text-xs font-medium text-danger-fg"
         >
           <span className="inline-flex items-center gap-1.5">
             <TriangleAlert className="size-3.5" />
@@ -111,7 +111,7 @@ export function ProductImagesField({
           <button
             type="button"
             onClick={() => refetch()}
-            className="inline-flex items-center gap-1 rounded-[8px] border border-[#E7C3C3] bg-card px-2.5 py-1 font-semibold text-[#C0392B] transition-colors hover:bg-[#FBEDED]"
+            className="inline-flex items-center gap-1 rounded-[8px] border border-danger-line bg-card px-2.5 py-1 font-semibold text-danger-fg transition-colors hover:bg-danger-bg"
           >
             <RotateCw className="size-3" />
             إعادة المحاولة
@@ -121,7 +121,7 @@ export function ProductImagesField({
       {status === "empty" && (
         <div
           dir="rtl"
-          className="mt-2 rounded-[11px] border border-[#EDEEF1] bg-[#F7F8FA] px-3 py-2.5 text-xs leading-relaxed text-[#7A7F88]"
+          className="mt-2 rounded-[11px] border border-line bg-surface-1 px-3 py-2.5 text-xs leading-relaxed text-ink-muted"
         >
           لا توجد ألوان بعد — أضِفها من{" "}
           <Link
@@ -149,11 +149,11 @@ export function ProductImagesField({
         <button
           type="button"
           onClick={() => fileInput.current?.click()}
-          className="flex h-[230px] w-[120px] flex-col items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-dashed border-[#C6CCD6] bg-[#FAFBFC] text-[#7A7F88] transition-colors hover:border-primary hover:bg-[#EEF1FC] hover:text-primary"
+          className="flex h-[230px] w-[120px] flex-col items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-dashed border-line-strong bg-surface-1 text-ink-muted transition-colors hover:border-primary hover:bg-accent-soft hover:text-primary"
         >
           <Upload className="size-6" />
           <span className="text-xs font-semibold">أضف لون / صورة</span>
-          <span className="text-[10.5px] text-[#A2A7AF]">PNG · JPG</span>
+          <span className="text-[10.5px] text-ink-faint">PNG · JPG</span>
         </button>
 
         {images.map((img, i) => (
@@ -210,7 +210,7 @@ function GalleryItem({
   return (
     <div className="w-[120px]">
       <div
-        className="relative h-[142px] w-[120px] overflow-hidden rounded-[14px] border border-[#E6E8EC]"
+        className="relative h-[142px] w-[120px] overflow-hidden rounded-[14px] border border-neutral-line"
         style={
           image.url
             ? undefined
@@ -225,7 +225,7 @@ function GalleryItem({
           />
         )}
         {isMain && (
-          <span className="absolute end-[7px] top-[7px] rounded-[7px] bg-primary/90 px-2 py-[3px] text-[10px] font-semibold text-white">
+          <span className="absolute end-[7px] top-[7px] rounded-[7px] bg-primary/90 px-2 py-[3px] text-[10px] font-semibold text-primary-foreground">
             ★ رئيسية
           </span>
         )}
@@ -235,7 +235,7 @@ function GalleryItem({
               <Star className="size-3.5" />
             </ImageOverlayButton>
           )}
-          <ImageOverlayButton label="حذف" onClick={onRemove} hoverClass="hover:bg-card hover:text-[#C0392B]">
+          <ImageOverlayButton label="حذف" onClick={onRemove} hoverClass="hover:bg-card hover:text-danger-fg">
             <X className="size-3.5" />
           </ImageOverlayButton>
         </div>
@@ -244,7 +244,7 @@ function GalleryItem({
       <div className="mt-2">
         <div className="mb-[5px] flex items-center gap-1.5">
           <Swatch hex={hex} />
-          <span className="text-[10.5px] font-semibold text-[#7A7F88]">
+          <span className="text-[10.5px] font-semibold text-ink-muted">
             لون هذه الصورة
           </span>
         </div>
@@ -258,8 +258,8 @@ function GalleryItem({
             dir="rtl"
             size="sm"
             className={cn(
-              "h-auto w-full rounded-[9px] border-[#E2E4E9] bg-card px-2.5 py-[7px] text-xs font-medium text-[#3A3E47]",
-              isUnassigned && "border-[#E2A33A] bg-[#FBF7EE]",
+              "h-auto w-full rounded-[9px] border-line-2 bg-card px-2.5 py-[7px] text-xs font-medium text-ink-2",
+              isUnassigned && "border-warn-dot bg-warn-bg",
             )}
           >
             <SelectValue placeholder={placeholder} />
@@ -292,7 +292,7 @@ function GalleryItem({
           </SelectContent>
         </Select>
         {isUnassigned && (
-          <p className="mt-1 flex items-center gap-1 text-[10.5px] font-medium text-[#9A6B12]">
+          <p className="mt-1 flex items-center gap-1 text-[10.5px] font-medium text-warn-fg">
             <TriangleAlert className="size-3" />
             اختر لونًا صحيحًا لهذه الصورة
           </p>
@@ -301,18 +301,18 @@ function GalleryItem({
 
       <div className="mt-[7px] flex flex-col gap-1">
         {image.analyzed ? (
-          <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-[#1B7A4E]">
-            <span className="size-[5px] rounded-full bg-[#1FA463]" />
+          <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-ok-fg">
+            <span className="size-[5px] rounded-full bg-ok-dot" />
             تم التحليل
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-[#9A6B12]">
+          <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-warn-fg">
             <Loader2 className="size-2.5 animate-spin" />
             جارٍ التحليل…
           </span>
         )}
-        <span className="inline-flex items-center gap-1.5 text-[10.5px] text-[#9197A0]">
-          <span className="size-[5px] rounded-full bg-[#C7CBD2]" />
+        <span className="inline-flex items-center gap-1.5 text-[10.5px] text-ink-faint">
+          <span className="size-[5px] rounded-full bg-line-strong" />
           embedding · قيد الإعداد
         </span>
       </div>
@@ -328,7 +328,7 @@ function Swatch({ hex }: { hex: string }) {
       className="inline-block size-3 shrink-0 rounded-full border"
       style={{
         background: hex,
-        borderColor: isWhite ? "#DADDE2" : "rgba(0,0,0,.16)",
+        borderColor: isWhite ? "var(--swatch-ring-white)" : "var(--swatch-ring)",
       }}
     />
   );

@@ -22,7 +22,7 @@ type ColorFormAsideProps = {
 };
 
 const primaryBtnClass =
-  "h-auto w-full justify-center rounded-[12px] py-[11px] text-sm font-semibold shadow-[0_6px_18px_-8px_#2B50D6]";
+  "h-auto w-full justify-center rounded-[12px] py-[11px] text-sm font-semibold shadow-[0_6px_18px_-8px_#2B50D6] dark:shadow-none";
 
 export function ColorFormAside({
   values,
@@ -40,8 +40,8 @@ export function ColorFormAside({
   return (
     <aside className="top-[30px] flex flex-col gap-4 lg:sticky">
       {/* Live preview */}
-      <div className="overflow-hidden rounded-[18px] border border-[#ECEDF1] bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_12px_34px_-28px_rgba(16,18,22,.26)]">
-        <div className="border-b border-[#F0F1F4] px-[18px] py-3.5 text-xs font-semibold text-[#9197A0]">
+      <div className="overflow-hidden rounded-[18px] border border-line bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_12px_34px_-28px_rgba(16,18,22,.26)]">
+        <div className="border-b border-surface-1 px-[18px] py-3.5 text-xs font-semibold text-ink-faint">
           معاينة اللون
         </div>
         <div className="flex items-center gap-3.5 p-[18px]">
@@ -52,12 +52,12 @@ export function ColorFormAside({
             className="size-14 rounded-[14px]"
           />
           <div className="min-w-0">
-            <div className="truncate text-[15px] font-semibold text-[#14161B]">
+            <div className="truncate text-[15px] font-semibold text-ink">
               {(values.name ?? "").trim() || "اسم اللون"}
             </div>
             <div
               dir="ltr"
-              className="mt-0.5 truncate text-start font-mono text-[12px] text-[#9197A0]"
+              className="mt-0.5 truncate text-start font-mono text-[12px] text-ink-faint"
             >
               {(values.family ?? "").trim() || "key"}
             </div>
@@ -69,13 +69,13 @@ export function ColorFormAside({
       </div>
 
       {/* Active state */}
-      <div className="rounded-[18px] border border-[#ECEDF1] bg-card p-[22px] shadow-[0_1px_2px_rgba(16,18,22,.04),0_12px_34px_-28px_rgba(16,18,22,.26)]">
+      <div className="rounded-[18px] border border-line bg-card p-[22px] shadow-[0_1px_2px_rgba(16,18,22,.04),0_12px_34px_-28px_rgba(16,18,22,.26)]">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold text-[#14161B]">حالة اللون</div>
+            <div className="text-sm font-semibold text-ink">حالة اللون</div>
             <div
               className="mt-[3px] text-xs font-medium"
-              style={{ color: isActive ? brand.accentDark : "#9197A0" }}
+              style={{ color: isActive ? brand.accentDark : "var(--ink-faint)" }}
             >
               {isActive ? "مفعّل — يُستخدم في المطابقة" : "معطّل — مخفي عن المطابقة"}
             </div>
@@ -87,9 +87,9 @@ export function ColorFormAside({
             aria-label="تبديل حالة اللون"
           />
         </div>
-        <div className="mt-3.5 flex items-start gap-[9px] rounded-[11px] border border-[#EDEEF1] bg-[#F7F8FA] px-3 py-[11px]">
-          <Info className="mt-px size-3.5 shrink-0 text-[#9197A0]" />
-          <p className="m-0 text-xs leading-relaxed text-[#7A7F88]">
+        <div className="mt-3.5 flex items-start gap-[9px] rounded-[11px] border border-line bg-surface-1 px-3 py-[11px]">
+          <Info className="mt-px size-3.5 shrink-0 text-ink-faint" />
+          <p className="m-0 text-xs leading-relaxed text-ink-muted">
             {isCreate
               ? "اللون الجديد مفعّل تلقائيًا، يمكنك تعطيله بعد الحفظ."
               : "تعطيل اللون يبقيه محفوظاً مع مصطلحاته لكن لا يستخدمه المساعد في مطابقة ألوان المنتجات — بديل آمن عن الحذف."}
@@ -112,7 +112,7 @@ export function ColorFormAside({
         <button
           type="button"
           onClick={onCancel}
-          className="w-full py-2 text-[13.5px] font-medium text-[#8A8F98] transition-colors hover:text-[#C0392B]"
+          className="w-full py-2 text-[13.5px] font-medium text-ink-muted transition-colors hover:text-danger-fg"
         >
           إلغاء
         </button>

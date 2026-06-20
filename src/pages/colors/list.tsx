@@ -50,7 +50,7 @@ const PAGE_SIZE = 12;
 
 /** Brand primary button — identical to the products / knowledge lists. */
 const primaryBtnClass =
-  "h-auto gap-2 rounded-[12px] px-[19px] py-[11px] text-sm font-semibold shadow-[0_6px_18px_-8px_#2B50D6]";
+  "h-auto gap-2 rounded-[12px] px-[19px] py-[11px] text-sm font-semibold shadow-[0_6px_18px_-8px_#2B50D6] dark:shadow-none";
 
 export const ColorList = () => {
   const { create, edit } = useNavigation();
@@ -221,18 +221,18 @@ export const ColorList = () => {
       {/* Header */}
       <div className="mb-[26px] flex items-end justify-between gap-5">
         <div>
-          <div className="mb-[7px] text-xs font-semibold text-[#9AA0A9]">
+          <div className="mb-[7px] text-xs font-semibold text-ink-faint">
             نظام الألوان
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="m-0 text-[30px] font-semibold tracking-[-0.4px] text-[#14161B]">
+            <h1 className="m-0 text-[30px] font-semibold tracking-[-0.4px] text-ink">
               الألوان
             </h1>
-            <span className="rounded-[20px] border border-[#E6E8EC] bg-card px-3 py-1 text-[13px] font-semibold text-[#6B7079]">
+            <span className="rounded-[20px] border border-neutral-line bg-card px-3 py-1 text-[13px] font-semibold text-neutral-fg">
               {colors.length} لون
             </span>
           </div>
-          <p className="mt-[9px] max-w-[540px] text-[13.5px] leading-relaxed text-[#7A7F88]">
+          <p className="mt-[9px] max-w-[540px] text-[13.5px] leading-relaxed text-ink-muted">
             الألوان القياسية ومصطلحات اللهجة التي يوحّدها المساعد الذكي عند فهم
             طلب الزبون (نبيتي → أحمر) — راجِعها بدقّة فهي تؤثّر مباشرةً في ردوده.
           </p>
@@ -247,7 +247,7 @@ export const ColorList = () => {
       {!isError && (
         <div className="mb-[18px] flex flex-wrap items-center gap-[11px]">
           <div className="relative min-w-[160px] flex-1">
-            <Search className="pointer-events-none absolute top-1/2 start-[13px] size-4 -translate-y-1/2 text-[#A2A7AF]" />
+            <Search className="pointer-events-none absolute top-1/2 start-[13px] size-4 -translate-y-1/2 text-ink-faint" />
             <Input
               value={searchInput}
               onChange={(e) => {
@@ -255,7 +255,7 @@ export const ColorList = () => {
                 resetPage();
               }}
               placeholder="ابحث بالاسم أو المفتاح…"
-              className="h-[42px] rounded-[12px] border-[#E2E4E9] bg-card ps-10 text-sm"
+              className="h-[42px] rounded-[12px] border-line-2 bg-card ps-10 text-sm"
             />
           </div>
           <Select
@@ -265,7 +265,7 @@ export const ColorList = () => {
               resetPage();
             }}
           >
-            <SelectTrigger className="h-[42px] min-w-[150px] rounded-[12px] border-[#E2E4E9] bg-card text-[13.5px] font-medium text-[#3A3E47]">
+            <SelectTrigger className="h-[42px] min-w-[150px] rounded-[12px] border-line-2 bg-card text-[13.5px] font-medium text-ink-2">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -310,7 +310,7 @@ export const ColorList = () => {
         onOpenChange={(open) => !open && closeDelete()}
       >
         <AlertDialogContent className="max-w-[430px] rounded-[20px] p-[26px]">
-          <div className="mb-4 flex size-[52px] items-center justify-center rounded-[15px] border border-[#F2D6D6] bg-[#FBEDED] text-[#C0392B]">
+          <div className="mb-4 flex size-[52px] items-center justify-center rounded-[15px] border border-danger-line bg-danger-bg text-danger-fg">
             {usageLoading ? (
               <Loader2 className="size-5 animate-spin" />
             ) : (
@@ -320,19 +320,19 @@ export const ColorList = () => {
 
           {usageLoading ? (
             <>
-              <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+              <AlertDialogTitle className="text-lg font-semibold text-ink">
                 جارٍ التحقق من تأثير الحذف…
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-ink-muted">
                 نتأكد من عدد المنتجات المرتبطة بهذا اللون قبل الحذف.
               </AlertDialogDescription>
             </>
           ) : usageError ? (
             <>
-              <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+              <AlertDialogTitle className="text-lg font-semibold text-ink">
                 تعذّر جلب تأثير الحذف
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-ink-muted">
                 حدث خطأ أثناء التحقق من المنتجات المرتبطة. حاول مرّة أخرى.
               </AlertDialogDescription>
               <AlertDialogFooter className="mt-[22px] gap-2.5 sm:justify-stretch">
@@ -351,26 +351,26 @@ export const ColorList = () => {
             </>
           ) : usage && usage.productCount > 0 ? (
             <>
-              <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+              <AlertDialogTitle className="text-lg font-semibold text-ink">
                 {usage.productCount} منتج يستخدم هذا اللون
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-ink-muted">
                 عند الحذف ستتحوّل صور هذه المنتجات إلى «غير معرف» وستحتاج مراجعة
                 يدوية لتعيين لون جديد.
               </AlertDialogDescription>
-              <div className="mt-3 max-h-[168px] overflow-y-auto rounded-[12px] border border-[#ECEDF1] bg-[#FAFAFB] p-1.5">
+              <div className="mt-3 max-h-[168px] overflow-y-auto rounded-[12px] border border-line bg-surface-1 p-1.5">
                 <ul className="flex flex-col">
                   {usage.products.map((p) => (
                     <li
                       key={p.id}
-                      className="truncate rounded-[8px] px-2.5 py-[7px] text-[13px] font-medium text-[#3A3E47]"
+                      className="truncate rounded-[8px] px-2.5 py-[7px] text-[13px] font-medium text-ink-2"
                     >
                       {p.name}
                     </li>
                   ))}
                   {usage.hasMore &&
                     usage.productCount - usage.products.length > 0 && (
-                      <li className="px-2.5 py-[7px] text-[12.5px] font-semibold text-[#7A7F88]">
+                      <li className="px-2.5 py-[7px] text-[12.5px] font-semibold text-ink-muted">
                         و+{usage.productCount - usage.products.length} غيرها
                       </li>
                     )}
@@ -396,12 +396,12 @@ export const ColorList = () => {
             </>
           ) : (
             <>
-              <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+              <AlertDialogTitle className="text-lg font-semibold text-ink">
                 حذف اللون؟
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+              <AlertDialogDescription className="text-[13.5px] leading-relaxed text-ink-muted">
                 سيتم حذف «
-                <span className="font-semibold text-[#4A4E57]">
+                <span className="font-semibold text-ink-2">
                   {deleteTarget?.name}
                 </span>
                 » <span className="font-semibold">ومصطلحاته</span> نهائياً. لا
@@ -440,17 +440,17 @@ function EmptyState({
   onAdd: () => void;
 }) {
   return (
-    <div className="rounded-[18px] border border-[#ECEDF1] bg-card px-[30px] py-[74px] text-center shadow-[0_1px_2px_rgba(16,18,22,.04)]">
+    <div className="rounded-[18px] border border-line bg-card px-[30px] py-[74px] text-center shadow-[0_1px_2px_rgba(16,18,22,.04)]">
       <div
-        className="mx-auto mb-[22px] flex size-[88px] items-center justify-center rounded-[24px] border border-[#E3E8F8] text-primary"
-        style={{ background: "linear-gradient(155deg,#EEF1FC,#fff)" }}
+        className="mx-auto mb-[22px] flex size-[88px] items-center justify-center rounded-[24px] border border-accent-line text-primary"
+        style={{ background: "linear-gradient(155deg,var(--accent-soft),var(--card))" }}
       >
         <Palette className="size-9" />
       </div>
-      <h2 className="mb-2 text-[21px] font-semibold text-[#14161B]">
+      <h2 className="mb-2 text-[21px] font-semibold text-ink">
         {filtered ? "لا توجد نتائج مطابقة" : "لا توجد ألوان بعد"}
       </h2>
-      <p className="mx-auto mb-6 max-w-[400px] text-sm leading-[1.7] text-[#7A7F88]">
+      <p className="mx-auto mb-6 max-w-[400px] text-sm leading-[1.7] text-ink-muted">
         {filtered
           ? "جرّب تعديل كلمات البحث أو إزالة عامل التصفية."
           : "أضِف الألوان القياسية (أحمر، أسود، بيج…) ثم اربط بكلٍّ منها مصطلحات اللهجة ليفهمها المساعد الذكي."}
@@ -467,14 +467,14 @@ function EmptyState({
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="rounded-[18px] border border-[#F2DCDC] bg-card px-[30px] py-[60px] text-center shadow-[0_1px_2px_rgba(16,18,22,.04)]">
-      <div className="mx-auto mb-5 flex size-[78px] items-center justify-center rounded-[22px] border border-[#F2D6D6] bg-[#FBEDED] text-[#C0392B]">
+    <div className="rounded-[18px] border border-danger-line bg-card px-[30px] py-[60px] text-center shadow-[0_1px_2px_rgba(16,18,22,.04)]">
+      <div className="mx-auto mb-5 flex size-[78px] items-center justify-center rounded-[22px] border border-danger-line bg-danger-bg text-danger-fg">
         <TriangleAlert className="size-8" />
       </div>
-      <h2 className="mb-2 text-xl font-semibold text-[#14161B]">
+      <h2 className="mb-2 text-xl font-semibold text-ink">
         تعذّر تحميل الألوان
       </h2>
-      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-[#7A7F88]">
+      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-ink-muted">
         حدث خطأ أثناء الاتصال بالخادم. تحقّق من الاتصال وحاول مرّة أخرى.
       </p>
       <Button
@@ -499,7 +499,7 @@ function Pagination({
   onChange: (page: number) => void;
 }) {
   return (
-    <div className="mt-4 flex items-center justify-between gap-3 text-[13px] text-[#7A7F88]">
+    <div className="mt-4 flex items-center justify-between gap-3 text-[13px] text-ink-muted">
       <span>
         صفحة {currentPage} من {pageCount}
       </span>

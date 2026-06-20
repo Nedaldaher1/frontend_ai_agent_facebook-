@@ -14,7 +14,7 @@ function Switch({
       data-slot="switch"
       className={cn(
         // Sized to the prototype's publish toggle (46x27, 21px knob).
-        "peer inline-flex h-[27px] w-[46px] shrink-0 items-center rounded-full border border-transparent px-[3px] outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-[#D4D7DD]",
+        "peer inline-flex h-[27px] w-[46px] shrink-0 items-center rounded-full border border-transparent px-[3px] outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-[#D4D7DD] dark:data-[state=unchecked]:bg-input",
         className
       )}
       {...props}

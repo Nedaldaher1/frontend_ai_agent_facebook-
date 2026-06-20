@@ -47,7 +47,10 @@ export function AppSidebar({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "flex flex-col bg-[#14161B] px-[18px] py-6 text-[#E7E8EC]",
+        // Intentionally dark in every theme (brand choice). In dark mode the
+        // canvas is also dark, so a subtle inline-start divider keeps the rail
+        // edge defined against the content area.
+        "flex flex-col bg-[#14161B] px-[18px] py-6 text-[#E7E8EC] dark:border-s dark:border-[#2b2b2b]",
         className,
       )}
     >

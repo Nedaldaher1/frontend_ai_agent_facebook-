@@ -46,7 +46,7 @@ export function ProductThumb({
     return (
       <div
         className={cn(
-          "shrink-0 overflow-hidden rounded-[9px] border border-[#ECEDF1]",
+          "shrink-0 overflow-hidden rounded-[9px] border border-line",
           className,
         )}
       >
@@ -58,15 +58,17 @@ export function ProductThumb({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-[9px] border border-[#ECEDF1]",
+        "flex shrink-0 items-center justify-center rounded-[9px] border border-line",
         className,
       )}
       style={{
-        background: `linear-gradient(155deg, ${tint(hex, 30)}, #fff 80%)`,
+        // Color-identity placeholder (no image): a tint of the product color
+        // fading into the card surface (white in light, dark in dark).
+        background: `linear-gradient(155deg, ${tint(hex, 30)}, var(--card) 80%)`,
       }}
     >
       {showLabel && (
-        <span className="text-[9px] font-semibold text-[#14161B]/35">صورة</span>
+        <span className="text-[9px] font-semibold text-ink/35">صورة</span>
       )}
     </div>
   );
@@ -81,8 +83,9 @@ function ColorDot({ color }: { color: string }) {
       className="inline-block size-[13px] rounded-full border"
       title={labelOf(COLORS, color)}
       style={{
+        // Physical color sample — fill stays literal; only the ring adapts.
         background: hex,
-        borderColor: isWhite ? "#DADDE2" : "rgba(0,0,0,.14)",
+        borderColor: isWhite ? "var(--swatch-ring-white)" : "var(--swatch-ring)",
       }}
     />
   );
@@ -104,7 +107,7 @@ export function ColorDots({
         <ColorDot key={`${c}-${i}`} color={c} />
       ))}
       {more > 0 && (
-        <span className="text-[11px] font-semibold text-[#9197A0]">
+        <span className="text-[11px] font-semibold text-ink-faint">
           +{more}
         </span>
       )}
@@ -157,7 +160,7 @@ export function Price({
       style={{ fontFeatureSettings: "'tnum'" }}
     >
       {value || "0.000"}{" "}
-      <span className="text-[11px] font-medium text-[#9197A0]">
+      <span className="text-[11px] font-medium text-ink-faint">
         {brand.currency}
       </span>
     </span>

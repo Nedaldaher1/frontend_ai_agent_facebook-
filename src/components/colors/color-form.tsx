@@ -444,12 +444,12 @@ export function ColorForm({ mode }: { mode: "create" | "edit" }) {
         <button
           type="button"
           onClick={() => list("colors")}
-          className="mb-3.5 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#7A7F88] transition-colors hover:text-primary"
+          className="mb-3.5 inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-muted transition-colors hover:text-primary"
         >
           <ArrowRight className="size-4" />
           العودة إلى الألوان
         </button>
-        <h1 className="m-0 text-[28px] font-semibold tracking-[-0.4px] text-[#14161B]">
+        <h1 className="m-0 text-[28px] font-semibold tracking-[-0.4px] text-ink">
           {isEditing ? "تعديل لون" : "إضافة لون جديد"}
         </h1>
       </div>
@@ -502,13 +502,13 @@ export function ColorForm({ mode }: { mode: "create" | "edit" }) {
         }}
       >
         <AlertDialogContent className="max-w-[420px] rounded-[20px] p-[26px]">
-          <div className="mb-4 flex size-[52px] items-center justify-center rounded-[15px] border border-[#F4D9A6] bg-[#FBF1DD] text-[#9A6B12]">
+          <div className="mb-4 flex size-[52px] items-center justify-center rounded-[15px] border border-warn-line bg-warn-bg text-warn-fg">
             <TriangleAlert className="size-5" />
           </div>
-          <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+          <AlertDialogTitle className="text-lg font-semibold text-ink">
             تغيير المفتاح القياسي؟
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+          <AlertDialogDescription className="text-[13.5px] leading-relaxed text-ink-muted">
             تغيير المفتاح القياسي يؤثّر على البحث والمصطلحات المرتبطة بهذا اللون.
             هل تريد المتابعة؟
           </AlertDialogDescription>
@@ -533,16 +533,16 @@ function FormSkeleton() {
   return (
     <div>
       <div className="mb-6">
-        <div className="mb-3.5 h-4 w-40 animate-pulse rounded bg-[#EDEEF1]" />
-        <div className="h-8 w-56 animate-pulse rounded bg-[#EDEEF1]" />
+        <div className="mb-3.5 h-4 w-40 animate-pulse rounded bg-line" />
+        <div className="h-8 w-56 animate-pulse rounded bg-line" />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_332px] lg:items-start">
         <div className="flex min-w-0 flex-col gap-[18px]">
           {[260, 220].map((h, i) => (
             <FormCard key={i}>
-              <div className="h-4 w-40 animate-pulse rounded bg-[#EDEEF1]" />
+              <div className="h-4 w-40 animate-pulse rounded bg-line" />
               <div
-                className="mt-4 w-full animate-pulse rounded-[12px] bg-[#F0F1F4]"
+                className="mt-4 w-full animate-pulse rounded-[12px] bg-surface-1"
                 style={{ height: h }}
               />
             </FormCard>
@@ -550,10 +550,10 @@ function FormSkeleton() {
         </div>
         <div className="flex flex-col gap-4">
           <FormCard>
-            <div className="h-28 w-full animate-pulse rounded bg-[#F0F1F4]" />
+            <div className="h-28 w-full animate-pulse rounded bg-surface-1" />
           </FormCard>
           <FormCard>
-            <div className="h-16 w-full animate-pulse rounded bg-[#F0F1F4]" />
+            <div className="h-16 w-full animate-pulse rounded bg-surface-1" />
           </FormCard>
         </div>
       </div>
@@ -569,25 +569,25 @@ function FormError({
   onRetry: () => void;
 }) {
   return (
-    <div className="rounded-[18px] border border-[#F2DCDC] bg-card px-[30px] py-[60px] text-center">
-      <h2 className="mb-2 text-xl font-semibold text-[#14161B]">
+    <div className="rounded-[18px] border border-danger-line bg-card px-[30px] py-[60px] text-center">
+      <h2 className="mb-2 text-xl font-semibold text-ink">
         تعذّر تحميل اللون
       </h2>
-      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-[#7A7F88]">
+      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-ink-muted">
         حدث خطأ أثناء جلب بيانات اللون. حاول مرّة أخرى أو عُد إلى القائمة.
       </p>
       <div className="flex items-center justify-center gap-2">
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-[12px] border border-[#DADDE2] bg-card px-5 py-[11px] text-sm font-semibold text-[#14161B] transition-colors hover:bg-[#F6F7F9]"
+          className="rounded-[12px] border border-line-2 bg-card px-5 py-[11px] text-sm font-semibold text-ink transition-colors hover:bg-surface-1"
         >
           إعادة المحاولة
         </button>
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-[11px] text-sm font-medium text-[#8A8F98] transition-colors hover:text-primary"
+          className="px-4 py-[11px] text-sm font-medium text-ink-muted transition-colors hover:text-primary"
         >
           العودة إلى الألوان
         </button>
