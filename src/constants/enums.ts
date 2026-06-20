@@ -80,6 +80,25 @@ export const PUBLISH_STATUSES = [
   { value: "draft", label: "مسودّة" },
 ] as const satisfies readonly EnumOption[];
 
+/**
+ * Closed category vocabulary for knowledge-base entries. The English `value` is
+ * the wire/DB key (must match the backend enum exactly — see the OpenAPI
+ * `CreateKnowledgeEntryDto.category`); the Arabic `label` is shown to staff.
+ * Always a <Select>, never free-typed (CLAUDE.md §6).
+ */
+export const KNOWLEDGE_CATEGORIES = [
+  { value: "faq", label: "أسئلة شائعة" },
+  { value: "policy", label: "سياسة عامة" },
+  { value: "shipping", label: "الشحن" },
+  { value: "returns", label: "الإرجاع والاستبدال" },
+  { value: "sizing", label: "دليل المقاسات" },
+  { value: "payment", label: "الدفع" },
+  { value: "care", label: "العناية بالقماش" },
+  { value: "canned_response", label: "ردّ جاهز" },
+  { value: "product_info", label: "معلومات منتج" },
+  { value: "general", label: "عام" },
+] as const satisfies readonly EnumOption[];
+
 /** A size bracket, defined by the customer's weight range (kg). */
 export type SizeOption = {
   id: string;

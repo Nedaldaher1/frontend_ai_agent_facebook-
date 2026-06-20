@@ -8,9 +8,14 @@
  * react-hook-form so the live preview can `watch()` everything.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "@refinedev/react-hook-form";
-import { useNavigation, useNotification, type HttpError } from "@refinedev/core";
+import {
+  useList,
+  useNavigation,
+  useNotification,
+  type HttpError,
+} from "@refinedev/core";
 import { ArrowRight } from "lucide-react";
 
 import {
@@ -34,7 +39,8 @@ import type {
   SizeId,
   StockStatus,
 } from "@/types/product";
-import { ProductAiSuggestions } from "./product-ai-suggestions";
+import type { Color } from "@/types/color";
+import { useUnassignedUsage } from "@/hooks/use-unassigned-colors";
 import { ProductDetailsFields } from "./product-details-fields";
 import { ProductFormAside } from "./product-form-aside";
 import { ProductImagesField } from "./product-images-field";
@@ -47,12 +53,18 @@ type AttrKey = "sleeve" | "fabric" | "occasion" | "embroidery";
 export function ProductForm({ mode }: { mode: "create" | "edit" }) {
   const { list } = useNavigation();
   const { open } = useNotification();
+  const { refresh: refreshUnassigned } = useUnassignedUsage();
 
   const form = useForm<Product, HttpError, ProductFormValues>({
     refineCoreProps: {
       resource: "products",
       action: mode,
       redirect: "list",
+      // Assigning a real color to an image fixes it, so drain the review queue
+      // (and its nav badge) on every save.
+      onMutationSuccess: () => {
+        void refreshUnassigned();
+      },
       successNotification: (_data, values) => ({
         type: "success",
         message:
@@ -88,6 +100,22 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
   const values = watch();
   const errors = showErrors ? validateProductForm(values) : NO_ERRORS;
 
+  // Each image stores a color id (UUID). The product's `color_family` and the
+  // live preview need the enum family + swatch, so fetch the colors once here
+  // and resolve id → family — keeping the colors table out of the pure mappers
+  // and the preview atoms (CLAUDE.md §6).
+  const { result: colorsResult } = useList<Color>({
+    resource: "colors",
+    dataProviderName: "colors",
+    pagination: { currentPage: 1, pageSize: 500 },
+  });
+  const colorFamilyById = useMemo(() => {
+    const rows = Array.isArray(colorsResult?.data) ? colorsResult.data : [];
+    const byId = new Map(rows.map((c) => [c.id, c.family]));
+    return (colorId: string): ColorValue | "" =>
+      ((colorId && byId.get(colorId)) || "") as ColorValue | "";
+  }, [colorsResult]);
+
   // --- image handlers ---------------------------------------------------
   const addImage = (file?: File) => {
     const id = Date.now();
@@ -96,7 +124,9 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
       url = URL.createObjectURL(file);
       objectUrls.current.push(url);
     }
-    const next: ProductImage = { id, url, color: "", analyzed: false };
+    // Hold the File until Save; the data provider uploads it then (create has
+    // no product id yet, and edit batches gallery changes on Save).
+    const next: ProductImage = { id, url, file, color: "", analyzed: false };
     setValue("images", [...getValues("images"), next], { shouldDirty: true });
     // Simulate Vision finishing its analysis for this variant.
     window.setTimeout(() => {
@@ -125,7 +155,7 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
     });
   };
 
-  const setImageColor = (id: ProductImage["id"], color: ColorValue | "") =>
+  const setImageColor = (id: ProductImage["id"], color: string) =>
     setValue(
       "images",
       getValues("images").map((im) => (im.id === id ? { ...im, color } : im)),
@@ -193,7 +223,9 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
     }
     // onFinish forwards the payload to the data provider; the form's TVariables
     // is the editable shape, so the mapped payload is cast through.
-    onFinish(formValuesToPayload(v, publish) as unknown as ProductFormValues);
+    onFinish(
+      formValuesToPayload(v, publish, colorFamilyById) as unknown as ProductFormValues,
+    );
   };
 
   // --- edit loading / error states --------------------------------------
@@ -210,12 +242,12 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
         <button
           type="button"
           onClick={() => list("products")}
-          className="mb-3.5 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#7A7F88] transition-colors hover:text-primary"
+          className="mb-3.5 inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-muted transition-colors hover:text-primary"
         >
           <ArrowRight className="size-4" />
           العودة إلى المنتجات
         </button>
-        <h1 className="m-0 text-[28px] font-semibold tracking-[-0.4px] text-[#14161B]">
+        <h1 className="m-0 text-[28px] font-semibold tracking-[-0.4px] text-ink">
           {mode === "edit" ? "تعديل منتج" : "إضافة منتج جديد"}
         </h1>
       </div>
@@ -230,12 +262,7 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
             onSetMain={setMain}
             onSetColor={setImageColor}
           />
-          <ProductAiSuggestions
-            suggestions={ai}
-            approved={aiApproved}
-            onEdit={editSuggestion}
-            onApproveAll={approveAll}
-          />
+  
           <ProductDetailsFields
             values={values}
             errors={errors}
@@ -253,6 +280,7 @@ export function ProductForm({ mode }: { mode: "create" | "edit" }) {
 
         <ProductFormAside
           values={values}
+          colorFamilyOf={colorFamilyById}
           submitting={formLoading}
           onTogglePublish={(v) => setValue("published", v)}
           onPublish={() => submit(true)}
@@ -268,16 +296,16 @@ function FormSkeleton() {
   return (
     <div>
       <div className="mb-6">
-        <div className="mb-3.5 h-4 w-40 animate-pulse rounded bg-[#EDEEF1]" />
-        <div className="h-8 w-56 animate-pulse rounded bg-[#EDEEF1]" />
+        <div className="mb-3.5 h-4 w-40 animate-pulse rounded bg-line" />
+        <div className="h-8 w-56 animate-pulse rounded bg-line" />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_332px] lg:items-start">
         <div className="flex min-w-0 flex-col gap-[18px]">
           {[230, 180, 320].map((h, i) => (
             <FormCard key={i}>
-              <div className="h-4 w-40 animate-pulse rounded bg-[#EDEEF1]" />
+              <div className="h-4 w-40 animate-pulse rounded bg-line" />
               <div
-                className="mt-4 w-full animate-pulse rounded-[12px] bg-[#F0F1F4]"
+                className="mt-4 w-full animate-pulse rounded-[12px] bg-surface-1"
                 style={{ height: h }}
               />
             </FormCard>
@@ -285,10 +313,10 @@ function FormSkeleton() {
         </div>
         <div className="flex flex-col gap-4">
           <FormCard>
-            <div className="h-24 w-full animate-pulse rounded bg-[#F0F1F4]" />
+            <div className="h-24 w-full animate-pulse rounded bg-surface-1" />
           </FormCard>
           <FormCard>
-            <div className="h-16 w-full animate-pulse rounded bg-[#F0F1F4]" />
+            <div className="h-16 w-full animate-pulse rounded bg-surface-1" />
           </FormCard>
         </div>
       </div>
@@ -304,25 +332,25 @@ function FormError({
   onRetry: () => void;
 }) {
   return (
-    <div className="rounded-[18px] border border-[#F2DCDC] bg-card px-[30px] py-[60px] text-center">
-      <h2 className="mb-2 text-xl font-semibold text-[#14161B]">
+    <div className="rounded-[18px] border border-danger-line bg-card px-[30px] py-[60px] text-center">
+      <h2 className="mb-2 text-xl font-semibold text-ink">
         تعذّر تحميل المنتج
       </h2>
-      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-[#7A7F88]">
+      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-ink-muted">
         حدث خطأ أثناء جلب بيانات المنتج. حاول مرّة أخرى أو عُد إلى القائمة.
       </p>
       <div className="flex items-center justify-center gap-2">
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-[12px] border border-[#DADDE2] bg-card px-5 py-[11px] text-sm font-semibold text-[#14161B] transition-colors hover:bg-[#F6F7F9]"
+          className="rounded-[12px] border border-line-2 bg-card px-5 py-[11px] text-sm font-semibold text-ink transition-colors hover:bg-surface-1"
         >
           إعادة المحاولة
         </button>
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-[11px] text-sm font-medium text-[#8A8F98] transition-colors hover:text-primary"
+          className="px-4 py-[11px] text-sm font-medium text-ink-muted transition-colors hover:text-primary"
         >
           العودة إلى المنتجات
         </button>

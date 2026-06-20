@@ -19,7 +19,7 @@ import { AppSidebar } from "./sidebar";
  */
 export function Layout({ children }: PropsWithChildren) {
   return (
-    <div className="min-h-screen bg-muted lg:grid lg:grid-cols-[1fr_268px]">
+    <div className="min-h-screen bg-app-bg lg:grid lg:grid-cols-[1fr_268px]">
       <div className="flex min-w-0 flex-col">
         <MobileBar />
         <main className="min-w-0 flex-1">

@@ -70,7 +70,7 @@ export const AuthLayout = ({
       </aside>
 
       {/* Form area (left in RTL) */}
-      <main className="flex items-center justify-center bg-[#F4F5F7] p-6 sm:p-10">
+      <main className="flex items-center justify-center bg-app-bg p-6 sm:p-10">
         <div className="w-full max-w-[420px]">
           {/* compact brand mark for small screens */}
           <div className="mb-8 flex justify-center lg:hidden">
@@ -78,10 +78,10 @@ export const AuthLayout = ({
           </div>
 
           <div className="mb-7 text-center sm:text-start">
-            <h1 className="text-2xl font-semibold tracking-tight text-[#14161B]">
+            <h1 className="text-2xl font-semibold tracking-tight text-ink">
               {heading}
             </h1>
-            <p className="mt-2 text-sm text-[#7A7F88]">{subheading}</p>
+            <p className="mt-2 text-sm text-ink-muted">{subheading}</p>
           </div>
 
           {children}
@@ -95,14 +95,14 @@ AuthLayout.displayName = "AuthLayout";
 
 const BrandMark = ({ name, compact }: { name: string; compact?: boolean }) => (
   <div className="relative z-10 flex items-center gap-3">
-    <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-white shadow-[0_6px_16px_-6px_#2b50d6]">
+    <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[0_6px_16px_-6px_#2b50d6] dark:shadow-none">
       <Diamond className="size-5" />
     </div>
     <div>
       <div
         className={cn(
           "font-semibold leading-tight",
-          compact ? "text-[#14161B]" : "text-white"
+          compact ? "text-ink" : "text-white"
         )}
       >
         {name}

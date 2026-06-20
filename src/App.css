@@ -43,6 +43,39 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --font-sans: "IBM Plex Sans Arabic", system-ui, sans-serif;
+
+  /* ── Semantic palette (theme-aware) ────────────────────────────────────
+     Exposed as utilities (text-ink, bg-surface-1, border-line, text-ok-fg…).
+     Light values mirror the design prototype exactly; the .dark block below
+     re-tunes them. Drive every former hardcoded hex through these so the
+     whole admin tracks the theme. */
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-surface-1: var(--surface-1);
+  --color-surface-hover: var(--surface-hover);
+  --color-app-bg: var(--app-bg);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-line-strong: var(--line-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --color-ok-fg: var(--ok-fg);
+  --color-ok-bg: var(--ok-bg);
+  --color-ok-line: var(--ok-line);
+  --color-ok-dot: var(--ok-dot);
+  --color-warn-fg: var(--warn-fg);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-line: var(--warn-line);
+  --color-warn-dot: var(--warn-dot);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-line: var(--danger-line);
+  --color-danger-dot: var(--danger-dot);
+  --color-neutral-fg: var(--neutral-fg);
+  --color-neutral-bg: var(--neutral-bg);
+  --color-neutral-line: var(--neutral-line);
 }
 
 :root {
@@ -79,55 +112,215 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Semantic palette — light values match the prototype's hand-tuned hexes
+     exactly (these are the values previously hardcoded across components, so
+     light mode is unchanged). */
+  --ink: #14161b; /* strong heading / primary text */
+  --ink-2: #3a3e47; /* secondary text, control labels */
+  --ink-muted: #7a7f88; /* muted body text */
+  --ink-faint: #9197a0; /* faint meta / placeholder text */
+
+  --surface-1: #fafafb; /* subtle fill: table headers, skeleton tracks */
+  --surface-hover: #fbfbfc; /* interactive row/cell hover */
+  --app-bg: #f4f5f7; /* page background behind cards */
+
+  --line: #ecedf1; /* hairline dividers, card borders */
+  --line-2: #e2e4e9; /* control / input borders */
+  --line-strong: #c6ccd6; /* dashed dropzones, prominent borders */
+
+  --accent-soft: #eef1fc; /* brand-tinted surface (badges, hovers) */
+  --accent-line: #d6def8; /* brand-tinted border */
+
+  --ok-fg: #1b7a4e;
+  --ok-bg: #eaf6ef;
+  --ok-line: #cdebd9;
+  --ok-dot: #1fa463;
+  --warn-fg: #9a6b12;
+  --warn-bg: #fbf4e6;
+  --warn-line: #f0e2c2;
+  --warn-dot: #e2a33a;
+  --danger-fg: #c0392b;
+  --danger-bg: #fbeded;
+  --danger-line: #f2d6d6;
+  --danger-dot: #d85656;
+  --neutral-fg: #6b7079;
+  --neutral-bg: #f1f2f5;
+  --neutral-line: #e6e8ec;
+
+  /* Publish badge — brand-tinted. Light values keep the prototype's exact
+     color-mix so the published pill is unchanged in light. */
+  --publish-fg: color-mix(in srgb, #2b50d6, #000 16%);
+  --publish-bg: color-mix(in srgb, #2b50d6 12%, #fff);
+  --publish-line: color-mix(in srgb, #2b50d6 32%, #fff);
+
+  /* Surfaces that are intentionally dark even in light mode (cannot reuse the
+     shadcn --sidebar token, which is near-white in light). */
+  --sidebar-bg: #14161b;
+  --review-bar: #0b0c0f;
+
+  /* Delineating ring around physical color swatches. The swatch fill stays the
+     literal product hex (never themed); only this ring adapts so the swatch
+     reads on either surface. `-white` is for near-white swatches. */
+  --swatch-ring: rgba(0, 0, 0, 0.14);
+  --swatch-ring-white: #dadde2;
+
+  /* Knowledge category accents (soft pills). */
+  --cat-faq-fg: #3b4cc0;
+  --cat-faq-bg: #eef1fc;
+  --cat-faq-line: #d6def8;
+  --cat-policy-fg: #5a6172;
+  --cat-policy-bg: #f1f3f7;
+  --cat-policy-line: #e1e5ed;
+  --cat-shipping-fg: #0e7c86;
+  --cat-shipping-bg: #e6f6f7;
+  --cat-shipping-line: #c7eaec;
+  --cat-returns-fg: #9a6b12;
+  --cat-returns-bg: #fbf4e6;
+  --cat-returns-line: #f0e2c2;
+  --cat-sizing-fg: #7a4fb0;
+  --cat-sizing-bg: #f3eefa;
+  --cat-sizing-line: #e4d7f4;
+  --cat-payment-fg: #1b7a4e;
+  --cat-payment-bg: #eaf6ef;
+  --cat-payment-line: #cdebd9;
+  --cat-care-fg: #b0467e;
+  --cat-care-bg: #fbecf3;
+  --cat-care-line: #f2d3e3;
+  --cat-canned-fg: #2266b3;
+  --cat-canned-bg: #e9f1fb;
+  --cat-canned-line: #cce0f5;
+  --cat-product-fg: #9a5b2c;
+  --cat-product-bg: #fbf0e6;
+  --cat-product-line: #f0dcc4;
+  --cat-general-fg: #6b7079;
+  --cat-general-bg: #f1f2f5;
+  --cat-general-line: #e6e8ec;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #2b50d6;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: #2b50d6;
+  /* Calm dark palette: a dark gray base (never #000), off-white text (never
+     #fff), and elevation expressed as progressively lighter surfaces
+     (background < card < popover/dialog) rather than shadows. */
+  --background: #151515;
+  --foreground: #e8e8e8;
+  --card: #1e1e1e;
+  --card-foreground: #e8e8e8;
+  --popover: #262626;
+  --popover-foreground: #e8e8e8;
+  /* Brand blue lightened + slightly desaturated for dark surfaces; primary
+     buttons carry dark on-primary text (M3-style) so contrast stays AA. */
+  --primary: #6e8aea;
+  --primary-foreground: #0c1024;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #e8e8e8;
+  --muted: #242424;
+  --muted-foreground: #a0a0a0;
+  --accent: #2e2e2e;
+  --accent-foreground: #f2f2f2;
+  /* Lightened red: high contrast as text (dropdown items ~5.5:1); destructive
+     buttons darken it via dark:bg-destructive/60 so white-on-button stays AA. */
+  --destructive: #ef6b6b;
+  --border: #303030;
+  --input: #3d3d3d;
+  --ring: #6e8aea;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #1a1a1a;
+  --sidebar-foreground: #e8e8e8;
+  --sidebar-primary: #6e8aea;
+  --sidebar-primary-foreground: #0c1024;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #e8e8e8;
+  --sidebar-border: #303030;
+  --sidebar-ring: #6e8aea;
+
+  /* Semantic palette — dark variants. Neutrals form an off-white→gray ramp;
+     status/category colors are lightened + desaturated foregrounds on
+     low-tint dark backgrounds (never the light-mode pastels). */
+  --ink: #e8e8e8;
+  --ink-2: #cfcfcf;
+  --ink-muted: #a3a3a3;
+  --ink-faint: #8c8c8c;
+
+  --surface-1: #232323;
+  --surface-hover: #2a2a2a;
+  /* Page canvas: a touch lighter than the always-dark sidebar rail so the rail
+     reads as a distinct band, and darker than cards so cards lift above it. */
+  --app-bg: #181818;
+
+  --line: #2e2e2e;
+  --line-2: #3a3a3a;
+  --line-strong: #4a4a4a;
+
+  --accent-soft: #20283c;
+  --accent-line: #38456b;
+
+  --ok-fg: #54c98a;
+  --ok-bg: #16261c;
+  --ok-line: #2b4d39;
+  --ok-dot: #34d27f;
+  --warn-fg: #dcab4f;
+  --warn-bg: #2a2410;
+  --warn-line: #4d3f1d;
+  --warn-dot: #e0a23a;
+  --danger-fg: #ef6b6b;
+  --danger-bg: #2c1818;
+  --danger-line: #5a3030;
+  --danger-dot: #ef6b6b;
+  --neutral-fg: #b0b0b0;
+  --neutral-bg: #262626;
+  --neutral-line: #3a3a3a;
+
+  --publish-fg: #9db0f2;
+  --publish-bg: #222a40;
+  --publish-line: #39456e;
+
+  --sidebar-bg: #181818;
+  --review-bar: #0a0a0a;
+
+  --swatch-ring: rgba(255, 255, 255, 0.22);
+  --swatch-ring-white: rgba(255, 255, 255, 0.3);
+
+  --cat-faq-fg: #9db0f2;
+  --cat-faq-bg: #222a40;
+  --cat-faq-line: #39456e;
+  --cat-policy-fg: #aeb6c6;
+  --cat-policy-bg: #262626;
+  --cat-policy-line: #3a3a3a;
+  --cat-shipping-fg: #4fc6cf;
+  --cat-shipping-bg: #102a2d;
+  --cat-shipping-line: #234a4e;
+  --cat-returns-fg: #dcab4f;
+  --cat-returns-bg: #2a2410;
+  --cat-returns-line: #4d3f1d;
+  --cat-sizing-fg: #c0a3e8;
+  --cat-sizing-bg: #251d33;
+  --cat-sizing-line: #43345e;
+  --cat-payment-fg: #54c98a;
+  --cat-payment-bg: #16261c;
+  --cat-payment-line: #2b4d39;
+  --cat-care-fg: #ef93c0;
+  --cat-care-bg: #2e1822;
+  --cat-care-line: #56304a;
+  --cat-canned-fg: #6aa6e8;
+  --cat-canned-bg: #172636;
+  --cat-canned-line: #2c4a6e;
+  --cat-product-fg: #d39a63;
+  --cat-product-bg: #2a2014;
+  --cat-product-line: #4d3c26;
+  --cat-general-fg: #b0b0b0;
+  --cat-general-bg: #262626;
+  --cat-general-line: #3a3a3a;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50 antialiased;
     font-family: var(--font-sans);
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;

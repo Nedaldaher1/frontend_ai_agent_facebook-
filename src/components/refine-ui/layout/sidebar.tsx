@@ -11,7 +11,15 @@
  * "قريباً" (soon) entries — the Phase 2 placeholders.
  */
 
+import { Fragment } from "react";
+import { useLocation } from "react-router";
+
+import {
+  useIsDarkMode,
+  useTheme,
+} from "@/components/refine-ui/theme/theme-provider";
 import { brand } from "@/constants/theme";
+import { useUnassignedUsage } from "@/hooks/use-unassigned-colors";
 import { cn } from "@/lib/utils";
 import {
   useGetIdentity,
@@ -20,7 +28,14 @@ import {
   useMenu,
   type TreeMenuItem,
 } from "@refinedev/core";
-import { Gem, ListIcon, LogOut } from "lucide-react";
+import {
+  Gem,
+  ListIcon,
+  LogOut,
+  Moon,
+  Sun,
+  TriangleAlert,
+} from "lucide-react";
 
 type Identity = {
   name?: string | null;
@@ -32,7 +47,10 @@ export function AppSidebar({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "flex flex-col bg-[#14161B] px-[18px] py-6 text-[#E7E8EC]",
+        // Intentionally dark in every theme (brand choice). In dark mode the
+        // canvas is also dark, so a subtle inline-start divider keeps the rail
+        // edge defined against the content area.
+        "flex flex-col bg-[#14161B] px-[18px] py-6 text-[#E7E8EC] dark:border-s dark:border-[#2b2b2b]",
         className,
       )}
     >
@@ -97,7 +115,7 @@ function SidebarNav() {
         }
 
         const isActive = item.key === selectedKey;
-        return (
+        const linkEl = (
           <Link
             key={item.key ?? item.name}
             to={item.route}
@@ -122,18 +140,72 @@ function SidebarNav() {
             {label}
           </Link>
         );
+
+        // The colors review queue lives under the colors entry, with a live badge.
+        if (item.name === "colors") {
+          return (
+            <Fragment key={item.key ?? item.name}>
+              {linkEl}
+              <ReviewNavLink />
+            </Fragment>
+          );
+        }
+
+        return linkEl;
       })}
     </nav>
+  );
+}
+
+/** "تحتاج مراجعة" — a sub-entry under Colors with a live count badge (the count
+ *  of products with sentinel-tagged images; badge hidden when zero). */
+function ReviewNavLink() {
+  const Link = useLink();
+  const location = useLocation();
+  const { usage } = useUnassignedUsage();
+  const count = usage?.productCount ?? 0;
+  const isActive = location.pathname === "/colors/review";
+
+  return (
+    <Link
+      to="/colors/review"
+      className={cn(
+        "flex items-center gap-[11px] rounded-[11px] py-2.5 pe-3 ps-[26px] text-[13px] transition-colors",
+        isActive
+          ? "font-semibold text-white"
+          : "text-[#A7ABB4] hover:bg-white/5 hover:text-white",
+      )}
+      style={
+        isActive
+          ? {
+              background: `color-mix(in srgb, ${brand.accent} 22%, #14161B)`,
+              boxShadow: `inset -3px 0 0 ${brand.accent}`,
+            }
+          : undefined
+      }
+      aria-current={isActive ? "page" : undefined}
+    >
+      <TriangleAlert className="size-[15px] text-[#E2A33A]" />
+      تحتاج مراجعة
+      {count > 0 && (
+        <span className="ms-auto inline-flex min-w-5 items-center justify-center rounded-full bg-[#E2A33A] px-1.5 py-0.5 text-[10.5px] font-bold text-[#1B1207]">
+          {count}
+        </span>
+      )}
+    </Link>
   );
 }
 
 function SidebarUserCard() {
   const { data: user } = useGetIdentity<Identity>();
   const { mutate: logout, isPending } = useLogout();
+  const { setTheme } = useTheme();
+  const isDark = useIsDarkMode();
 
   const name = user?.name ?? "—";
   const role = user?.role ?? "مدير الكتالوج";
   const initial = (name?.trim()?.[0] ?? "?").toUpperCase();
+  const themeLabel = isDark ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن";
 
   return (
     <div className="flex items-center gap-[11px] rounded-[13px] border border-[#262A33] bg-[#1B1E25] px-2.5 py-[11px]">
@@ -149,17 +221,33 @@ function SidebarUserCard() {
         </div>
         <div className="truncate text-[11px] text-[#7C808A]">{role}</div>
       </div>
-      <button
-        type="button"
-        onClick={() => logout()}
-        disabled={isPending}
-        title="تسجيل الخروج"
-        aria-label="تسجيل الخروج"
-        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[#7C808A] transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
-      >
-        {/* The log-out glyph points "outward"; mirror it for RTL. */}
-        <LogOut className="size-4 rtl:-scale-x-100" />
-      </button>
+      <div className="flex shrink-0 items-center gap-1">
+        {/* The sidebar stays dark by design; this flips the content area. */}
+        <button
+          type="button"
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          title={themeLabel}
+          aria-label={themeLabel}
+          className="flex size-8 items-center justify-center rounded-lg text-[#7C808A] transition-colors hover:bg-white/5 hover:text-white"
+        >
+          {isDark ? (
+            <Moon className="size-4" />
+          ) : (
+            <Sun className="size-4" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => logout()}
+          disabled={isPending}
+          title="تسجيل الخروج"
+          aria-label="تسجيل الخروج"
+          className="flex size-8 items-center justify-center rounded-lg text-[#7C808A] transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+        >
+          {/* The log-out glyph points "outward"; mirror it for RTL. */}
+          <LogOut className="size-4 rtl:-scale-x-100" />
+        </button>
+      </div>
     </div>
   );
 }

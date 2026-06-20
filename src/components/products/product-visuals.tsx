@@ -27,31 +27,48 @@ const badgeClass =
   "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-[11px] py-1 text-[11.5px] font-semibold";
 
 /**
- * A product thumbnail rendered as a soft color-tinted gradient (the catalog
- * has no real imagery in the prototype). Size is passed via `className`.
+ * A product thumbnail. Shows the real primary image when a `url` is given
+ * (`imageUrls[0]`), otherwise falls back to a soft color-tinted gradient
+ * placeholder. Size is passed via `className`.
  */
 export function ProductThumb({
   color,
+  url,
   className,
   showLabel = false,
 }: {
   color?: string | null;
+  url?: string | null;
   className?: string;
   showLabel?: boolean;
 }) {
+  if (url) {
+    return (
+      <div
+        className={cn(
+          "shrink-0 overflow-hidden rounded-[9px] border border-line",
+          className,
+        )}
+      >
+        <img src={url} alt="" className="size-full object-cover" />
+      </div>
+    );
+  }
   const hex = colorHex(color);
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-[9px] border border-[#ECEDF1]",
+        "flex shrink-0 items-center justify-center rounded-[9px] border border-line",
         className,
       )}
       style={{
-        background: `linear-gradient(155deg, ${tint(hex, 30)}, #fff 80%)`,
+        // Color-identity placeholder (no image): a tint of the product color
+        // fading into the card surface (white in light, dark in dark).
+        background: `linear-gradient(155deg, ${tint(hex, 30)}, var(--card) 80%)`,
       }}
     >
       {showLabel && (
-        <span className="text-[9px] font-semibold text-[#14161B]/35">صورة</span>
+        <span className="text-[9px] font-semibold text-ink/35">صورة</span>
       )}
     </div>
   );
@@ -66,8 +83,9 @@ function ColorDot({ color }: { color: string }) {
       className="inline-block size-[13px] rounded-full border"
       title={labelOf(COLORS, color)}
       style={{
+        // Physical color sample — fill stays literal; only the ring adapts.
         background: hex,
-        borderColor: isWhite ? "#DADDE2" : "rgba(0,0,0,.14)",
+        borderColor: isWhite ? "var(--swatch-ring-white)" : "var(--swatch-ring)",
       }}
     />
   );
@@ -89,7 +107,7 @@ export function ColorDots({
         <ColorDot key={`${c}-${i}`} color={c} />
       ))}
       {more > 0 && (
-        <span className="text-[11px] font-semibold text-[#9197A0]">
+        <span className="text-[11px] font-semibold text-ink-faint">
           +{more}
         </span>
       )}
@@ -142,7 +160,7 @@ export function Price({
       style={{ fontFeatureSettings: "'tnum'" }}
     >
       {value || "0.000"}{" "}
-      <span className="text-[11px] font-medium text-[#9197A0]">
+      <span className="text-[11px] font-medium text-ink-faint">
         {brand.currency}
       </span>
     </span>

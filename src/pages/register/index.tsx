@@ -47,14 +47,14 @@ export const Register = () => {
     );
   };
 
-  const fieldClass = cn("h-11 rounded-xl bg-white");
+  const fieldClass = cn("h-11 rounded-xl bg-card");
 
   return (
     <AuthLayout
       heading="إنشاء حساب"
       subheading="أنشئ حسابك لإدارة كتالوج ماسة فاشن."
     >
-      <Card className="rounded-2xl border-[#ECEDF1] shadow-sm">
+      <Card className="rounded-2xl border-line shadow-sm dark:shadow-none">
         <CardContent className="p-6 sm:p-7">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
@@ -127,7 +127,7 @@ export const Register = () => {
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-center text-sm text-[#7A7F88]">
+      <p className="mt-6 text-center text-sm text-ink-muted">
         لديك حساب بالفعل؟{" "}
         <Link
           to="/login"

@@ -24,7 +24,7 @@ const ROW =
   "grid min-w-[760px] grid-cols-[52px_minmax(170px,1fr)_96px_104px_96px_100px_104px] items-center gap-2 px-[22px]";
 
 const cardClass =
-  "overflow-hidden overflow-x-auto rounded-[18px] border border-[#ECEDF1] bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_14px_38px_-28px_rgba(16,18,22,.28)]";
+  "overflow-hidden overflow-x-auto rounded-[18px] border border-line bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_14px_38px_-28px_rgba(16,18,22,.28)]";
 
 type ProductsTableProps = {
   products: Product[];
@@ -41,7 +41,7 @@ function HeaderRow() {
       role="row"
       className={cn(
         ROW,
-        "border-b border-[#EEEFF2] bg-[#FAFAFB] py-[13px] text-[11.5px] font-semibold text-[#9197A0]",
+        "border-b border-line bg-surface-1 py-[13px] text-[11.5px] font-semibold text-ink-faint",
       )}
     >
       <div role="columnheader" aria-label="صورة" />
@@ -77,22 +77,23 @@ export function ProductsTable({
               role="row"
               className={cn(
                 ROW,
-                "border-b border-[#F1F2F4] py-3 transition-colors hover:bg-[#FBFBFC]",
+                "border-b border-line py-3 transition-colors hover:bg-surface-hover",
               )}
             >
               <div role="cell">
                 <ProductThumb
                   color={p.colors?.[0]}
+                  url={p.images?.[0]?.url}
                   className="h-[50px] w-[42px]"
                   showLabel
                 />
               </div>
               <div role="cell" className="min-w-0">
-                <div className="truncate text-sm font-semibold text-[#1B1D23]">
+                <div className="truncate text-sm font-semibold text-ink">
                   {p.name}
                 </div>
                 {tagsLine && (
-                  <div className="mt-0.5 truncate text-[11.5px] text-[#9197A0]">
+                  <div className="mt-0.5 truncate text-[11.5px] text-ink-faint">
                     {tagsLine}
                   </div>
                 )}
@@ -100,7 +101,7 @@ export function ProductsTable({
               <div role="cell">
                 <Price
                   value={p.price}
-                  className="text-sm font-semibold text-[#1B1D23]"
+                  className="text-sm font-semibold text-ink"
                 />
               </div>
               <div role="cell">
@@ -150,12 +151,12 @@ export function ProductsTable({
 export function ProductsTableSkeleton({ rows = 6 }: { rows?: number }) {
   return (
     <div className={cardClass}>
-      <div className="flex items-center gap-[9px] border-b border-[#EEEFF2] bg-[#FAFAFB] px-[22px] py-[13px] text-xs text-[#9197A0]">
+      <div className="flex items-center gap-[9px] border-b border-line bg-surface-1 px-[22px] py-[13px] text-xs text-ink-faint">
         <Loader2 className="size-[13px] animate-spin text-primary" />
         جارٍ تحميل المنتجات…
       </div>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className={cn(ROW, "border-b border-[#F1F2F4] py-3.5")}>
+        <div key={i} className={cn(ROW, "border-b border-line py-3.5")}>
           <SkeletonBar className="h-[50px] w-[42px] rounded-[9px]" />
           <div>
             <SkeletonBar className="h-[11px] w-[62%]" />
@@ -174,7 +175,7 @@ export function ProductsTableSkeleton({ rows = 6 }: { rows?: number }) {
 
 function SkeletonBar({ className }: { className?: string }) {
   return (
-    <div className={cn("animate-pulse rounded-md bg-[#EDEEF1]", className)} />
+    <div className={cn("animate-pulse rounded-md bg-line", className)} />
   );
 }
 
@@ -201,11 +202,11 @@ function IconButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "flex size-[30px] items-center justify-center rounded-[9px] border border-[#E6E8EC] bg-card text-[#7A7F88] transition-colors disabled:opacity-50",
+        "flex size-[30px] items-center justify-center rounded-[9px] border border-neutral-line bg-card text-ink-muted transition-colors disabled:opacity-50",
         tone === "default" &&
-          "hover:border-[#CBD6F5] hover:bg-[#EEF1FC] hover:text-primary",
+          "hover:border-accent-line hover:bg-accent-soft hover:text-primary",
         tone === "danger" &&
-          "hover:border-[#F2D6D6] hover:bg-[#FBEDED] hover:text-[#C0392B]",
+          "hover:border-danger-line hover:bg-danger-bg hover:text-danger-fg",
       )}
     >
       {children}

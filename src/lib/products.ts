@@ -20,11 +20,21 @@ import type {
   ProductImage,
 } from "@/types/product";
 
-/** Distinct, non-empty colors across a product's image variants, in order. */
-export function uniqueColors(images: ProductImage[]): ColorValue[] {
+/**
+ * Distinct, non-empty color families across a product's image variants, in
+ * order. Each image stores a color id (UUID); `resolveFamily` maps that id to
+ * its closed-enum family key — the value `color_family` and the preview swatches
+ * are derived from. Ids that no longer resolve (e.g. a deleted color) are
+ * skipped.
+ */
+export function uniqueColors(
+  images: ProductImage[],
+  resolveFamily: (colorId: string) => ColorValue | "",
+): ColorValue[] {
   const seen = new Set<ColorValue>();
   for (const img of images) {
-    if (img.color) seen.add(img.color);
+    const family = img.color ? resolveFamily(img.color) : "";
+    if (family) seen.add(family);
   }
   return [...seen];
 }
@@ -112,18 +122,25 @@ export function productToFormValues(product: Product): ProductFormValues {
   };
 }
 
-/** Build the create/update payload, deriving colors + publish status. */
+/**
+ * Build the create/update payload, deriving colors + publish status.
+ * `resolveFamily` turns each image's color id into its enum family so the
+ * product's `color_family` stays the closed-enum key (not a UUID).
+ */
 export function formValuesToPayload(
   values: ProductFormValues,
   publish: boolean,
+  resolveFamily: (colorId: string) => ColorValue | "",
 ): Partial<Product> {
   return {
-    name: values.name.trim(),
-    description: values.description.trim() || undefined,
-    price: values.price.trim(),
-    colors: uniqueColors(values.images),
+    // Guard every `.trim()`: Refine re-populates the edit form from the raw
+    // record, where optional fields (description, maxWeight) arrive `undefined`.
+    name: (values.name ?? "").trim(),
+    description: (values.description ?? "").trim() || undefined,
+    price: (values.price ?? "").trim(),
+    colors: uniqueColors(values.images, resolveFamily),
     sizes: values.sizes,
-    maxWeight: values.maxWeight.trim() || undefined,
+    maxWeight: (values.maxWeight ?? "").trim() || undefined,
     measurements: values.measurements,
     stock: values.stock,
     sleeve: values.sleeve || undefined,
@@ -132,13 +149,16 @@ export function formValuesToPayload(
     embroidery: values.embroidery || undefined,
     tags: values.tags,
     status: publish ? "published" : "draft",
-    // NOTE: image binaries aren't uploaded yet — only the color/variant
-    // metadata is sent. Wiring real file upload to the backend is a TODO.
+    // Carry each variant's storage `key` (existing images to keep) and pending
+    // `file` (new uploads) so the data provider can reconcile the gallery on
+    // save: delete removed keys, upload new files, set the first as primary.
     images: values.images.map((img, i) => ({
       id: img.id,
       color: img.color,
       isMain: i === 0,
       analyzed: img.analyzed,
+      key: img.key,
+      file: img.file,
     })),
   };
 }
@@ -149,15 +169,19 @@ export type ProductFormErrors = {
   images: boolean;
 };
 
-/** Mirror of the prototype's `validate()` — required: name, price, ≥1 image. */
+/** The backend's accepted JOD price shape (e.g. "45", "45.5", "45.990"). */
+const PRICE_PATTERN = /^\d+(\.\d{1,3})?$/;
+
+/** Required: name, a pattern-valid price, and ≥1 image. */
 export function validateProductForm(
   values: ProductFormValues,
 ): ProductFormErrors {
-  const price = values.price.trim();
+  // Guard against the raw nullable record Refine resets the edit form with.
+  const price = (values.price ?? "").trim();
   return {
-    name: !values.name.trim(),
-    price: !price || Number.isNaN(Number.parseFloat(price)),
-    images: values.images.length === 0,
+    name: !(values.name ?? "").trim(),
+    price: !PRICE_PATTERN.test(price),
+    images: (values.images ?? []).length === 0,
   };
 }
 
