@@ -75,4 +75,19 @@ export function useTheme() {
   return context;
 }
 
+/**
+ * Resolve whether the app is currently rendered in dark mode, accounting for
+ * the "system" preference. Useful for binary light <-> dark toggles.
+ */
+export function useIsDarkMode() {
+  const { theme } = useTheme();
+
+  return (
+    theme === "dark" ||
+    (theme === "system" &&
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
+}
+
 ThemeProvider.displayName = "ThemeProvider";

@@ -18,13 +18,32 @@ import { useNotificationProvider } from "./components/refine-ui/notification/use
 import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
 
 import { resources } from "./config/resources";
+import { UnassignedUsageProvider } from "./hooks/use-unassigned-colors";
 import { authProvider } from "./providers/auth";
 import { dataProvider } from "./providers/data";
+import { knowledgeDataProvider } from "./providers/knowledge-data";
+import {
+  colorsDataProvider,
+  colorSynonymsDataProvider,
+} from "./providers/colors-data";
+import { ordersDataProvider } from "./providers/orders-data";
 
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import { ProductCreate, ProductEdit, ProductList } from "./pages/products";
+import {
+  KnowledgeCreate,
+  KnowledgeEdit,
+  KnowledgeList,
+} from "./pages/knowledge";
+import {
+  ColorCreate,
+  ColorEdit,
+  ColorList,
+  ColorReview,
+} from "./pages/colors";
+import { OrderList, OrderShow } from "./pages/orders";
 
 function App() {
   return (
@@ -33,7 +52,13 @@ function App() {
         <ThemeProvider>
           <DevtoolsProvider>
             <Refine
-              dataProvider={dataProvider}
+              dataProvider={{
+                default: dataProvider,
+                knowledge: knowledgeDataProvider,
+                colors: colorsDataProvider,
+                colorSynonyms: colorSynonymsDataProvider,
+                orders: ordersDataProvider,
+              }}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
               authProvider={authProvider}
@@ -52,9 +77,11 @@ function App() {
                       key="authenticated-routes"
                       fallback={<CatchAllNavigate to="/login" />}
                     >
-                      <Layout>
-                        <Outlet />
-                      </Layout>
+                      <UnassignedUsageProvider>
+                        <Layout>
+                          <Outlet />
+                        </Layout>
+                      </UnassignedUsageProvider>
                     </Authenticated>
                   }
                 >
@@ -66,6 +93,21 @@ function App() {
                     <Route index element={<ProductList />} />
                     <Route path="create" element={<ProductCreate />} />
                     <Route path="edit/:id" element={<ProductEdit />} />
+                  </Route>
+                  <Route path="/knowledge">
+                    <Route index element={<KnowledgeList />} />
+                    <Route path="create" element={<KnowledgeCreate />} />
+                    <Route path="edit/:id" element={<KnowledgeEdit />} />
+                  </Route>
+                  <Route path="/colors">
+                    <Route index element={<ColorList />} />
+                    <Route path="create" element={<ColorCreate />} />
+                    <Route path="review" element={<ColorReview />} />
+                    <Route path="edit/:id" element={<ColorEdit />} />
+                  </Route>
+                  <Route path="/orders">
+                    <Route index element={<OrderList />} />
+                    <Route path="show/:id" element={<OrderShow />} />
                   </Route>
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
@@ -87,7 +129,7 @@ function App() {
                 </Route>
               </Routes>
 
-              <Toaster />
+              <Toaster position="bottom-center" />
               <RefineKbar />
               <UnsavedChangesNotifier />
               <DocumentTitleHandler />

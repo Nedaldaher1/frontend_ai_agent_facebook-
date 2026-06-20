@@ -68,6 +68,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@tailwindcss/postcss": "^4.1.4",
     "@types/node": "^20",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
@@ -78,17 +79,18 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5",
+    "openapi-typescript": "^7.13.0",
+    "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
-    "@tailwindcss/postcss": "^4.1.4",
-    "tailwindcss": "^4.1.4"
+    "typescript-eslint": "^8.30.1",
+    "vite": "^6.3.5"
   },
   "scripts": {
     "dev": "refine dev",
     "build": "tsc && refine build",
     "start": "refine start",
-    "refine": "refine"
+    "refine": "refine",
+    "gen:types": "openapi-typescript ${VITE_API_URL:-http://localhost:3000}/docs/openapi.json -o src/types/api.d.ts"
   },
   "browserslist": {
     "production": [
