@@ -17,7 +17,7 @@ const ROW =
   "grid min-w-[760px] grid-cols-[44px_minmax(160px,1fr)_minmax(140px,200px)_132px_132px_88px] items-center gap-2 px-[22px]";
 
 const cardClass =
-  "overflow-hidden overflow-x-auto rounded-[18px] border border-[#ECEDF1] bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_14px_38px_-28px_rgba(16,18,22,.28)]";
+  "overflow-hidden overflow-x-auto rounded-[18px] border border-line bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_14px_38px_-28px_rgba(16,18,22,.28)]";
 
 type ColorsTableProps = {
   colors: Color[];
@@ -36,7 +36,7 @@ function HeaderRow() {
       role="row"
       className={cn(
         ROW,
-        "border-b border-[#EEEFF2] bg-[#FAFAFB] py-[13px] text-[11.5px] font-semibold text-[#9197A0]",
+        "border-b border-line bg-surface-1 py-[13px] text-[11.5px] font-semibold text-ink-faint",
       )}
     >
       <div role="columnheader" aria-label="العيّنة" />
@@ -69,14 +69,14 @@ export function ColorsTable({
             role="row"
             className={cn(
               ROW,
-              "border-b border-[#F1F2F4] py-3 transition-colors hover:bg-[#FBFBFC]",
+              "border-b border-line py-3 transition-colors hover:bg-surface-hover",
             )}
           >
             <div role="cell">
               <Swatch hex={color.hex} />
             </div>
             <div role="cell" className="min-w-0">
-              <div className="truncate text-sm font-semibold text-[#1B1D23]">
+              <div className="truncate text-sm font-semibold text-ink">
                 {color.name}
               </div>
             </div>
@@ -84,7 +84,7 @@ export function ColorsTable({
               {/* family is a technical English key — LTR, monospace, muted. */}
               <span
                 dir="ltr"
-                className="block truncate text-start font-mono text-[12.5px] text-[#8A8F98]"
+                className="block truncate text-start font-mono text-[12.5px] text-ink-muted"
               >
                 {color.family}
               </span>
@@ -104,7 +104,7 @@ export function ColorsTable({
               <span
                 className={cn(
                   "text-[12px] font-medium",
-                  color.isActive ? "text-[#1B7A4E]" : "text-[#9197A0]",
+                  color.isActive ? "text-ok-fg" : "text-ink-faint",
                 )}
               >
                 {color.isActive ? "مفعّل" : "معطّل"}
@@ -133,12 +133,12 @@ export function ColorsTable({
 export function ColorsTableSkeleton({ rows = 6 }: { rows?: number }) {
   return (
     <div className={cardClass}>
-      <div className="flex items-center gap-[9px] border-b border-[#EEEFF2] bg-[#FAFAFB] px-[22px] py-[13px] text-xs text-[#9197A0]">
+      <div className="flex items-center gap-[9px] border-b border-line bg-surface-1 px-[22px] py-[13px] text-xs text-ink-faint">
         <Loader2 className="size-[13px] animate-spin text-primary" />
         جارٍ تحميل الألوان…
       </div>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className={cn(ROW, "border-b border-[#F1F2F4] py-3.5")}>
+        <div key={i} className={cn(ROW, "border-b border-line py-3.5")}>
           <SkeletonBar className="size-[22px] rounded-[7px]" />
           <SkeletonBar className="h-[11px] w-[55%]" />
           <SkeletonBar className="h-[11px] w-[60%]" />
@@ -152,7 +152,7 @@ export function ColorsTableSkeleton({ rows = 6 }: { rows?: number }) {
 }
 
 function SkeletonBar({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-[#EDEEF1]", className)} />;
+  return <div className={cn("animate-pulse rounded-md bg-line", className)} />;
 }
 
 type IconButtonProps = {
@@ -178,11 +178,11 @@ function IconButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "flex size-[30px] items-center justify-center rounded-[9px] border border-[#E6E8EC] bg-card text-[#7A7F88] transition-colors disabled:opacity-50",
+        "flex size-[30px] items-center justify-center rounded-[9px] border border-neutral-line bg-card text-ink-muted transition-colors disabled:opacity-50",
         tone === "default" &&
-          "hover:border-[#CBD6F5] hover:bg-[#EEF1FC] hover:text-primary",
+          "hover:border-accent-line hover:bg-accent-soft hover:text-primary",
         tone === "danger" &&
-          "hover:border-[#F2D6D6] hover:bg-[#FBEDED] hover:text-[#C0392B]",
+          "hover:border-danger-line hover:bg-danger-bg hover:text-danger-fg",
       )}
     >
       {children}

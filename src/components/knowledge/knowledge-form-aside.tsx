@@ -28,7 +28,7 @@ type KnowledgeFormAsideProps = {
 };
 
 const primaryBtnClass =
-  "h-auto w-full justify-center rounded-[12px] py-[11px] text-sm font-semibold shadow-[0_6px_18px_-8px_#2B50D6]";
+  "h-auto w-full justify-center rounded-[12px] py-[11px] text-sm font-semibold shadow-[0_6px_18px_-8px_#2B50D6] dark:shadow-none";
 
 export function KnowledgeFormAside({
   values,
@@ -43,14 +43,14 @@ export function KnowledgeFormAside({
   return (
     <aside className="top-[30px] flex flex-col gap-4 lg:sticky">
       {/* How the agent sees it */}
-      <div className="overflow-hidden rounded-[18px] border border-[#ECEDF1] bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_12px_34px_-28px_rgba(16,18,22,.26)]">
-        <div className="border-b border-[#F0F1F4] px-[18px] py-3.5 text-xs font-semibold text-[#9197A0]">
+      <div className="overflow-hidden rounded-[18px] border border-line bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_12px_34px_-28px_rgba(16,18,22,.26)]">
+        <div className="border-b border-surface-1 px-[18px] py-3.5 text-xs font-semibold text-ink-faint">
           كيف يراها المساعد الذكي
         </div>
 
         {/* Live preview */}
         <div className="flex flex-col gap-2.5 p-[18px]">
-          <div className="text-[14.5px] font-semibold text-[#14161B]">
+          <div className="text-[14.5px] font-semibold text-ink">
             {values.title || "عنوان المدخل"}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -61,7 +61,7 @@ export function KnowledgeFormAside({
         </div>
 
         {/* Behaviour notes */}
-        <div className="border-t border-[#F0F1F4] px-[18px] py-4">
+        <div className="border-t border-surface-1 px-[18px] py-4">
           <Note icon={<Eye className="size-3.5" />}>
             لا يرى المساعد إلا المداخل <strong>المنشورة</strong>.
           </Note>
@@ -76,13 +76,13 @@ export function KnowledgeFormAside({
       </div>
 
       {/* Publish */}
-      <div className="rounded-[18px] border border-[#ECEDF1] bg-card p-[22px] shadow-[0_1px_2px_rgba(16,18,22,.04),0_12px_34px_-28px_rgba(16,18,22,.26)]">
+      <div className="rounded-[18px] border border-line bg-card p-[22px] shadow-[0_1px_2px_rgba(16,18,22,.04),0_12px_34px_-28px_rgba(16,18,22,.26)]">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold text-[#14161B]">حالة النشر</div>
+            <div className="text-sm font-semibold text-ink">حالة النشر</div>
             <div
               className="mt-[3px] text-xs font-medium"
-              style={{ color: published ? brand.accentDark : "#9197A0" }}
+              style={{ color: published ? brand.accentDark : "var(--ink-faint)" }}
             >
               {published ? "مرئي للمساعد" : "مخفي — مسودّة"}
             </div>
@@ -93,9 +93,9 @@ export function KnowledgeFormAside({
             aria-label="تبديل حالة النشر"
           />
         </div>
-        <div className="mt-3.5 flex items-start gap-[9px] rounded-[11px] border border-[#EDEEF1] bg-[#F7F8FA] px-3 py-[11px]">
-          <Info className="mt-px size-3.5 shrink-0 text-[#9197A0]" />
-          <p className="m-0 text-xs leading-relaxed text-[#7A7F88]">
+        <div className="mt-3.5 flex items-start gap-[9px] rounded-[11px] border border-line bg-surface-1 px-3 py-[11px]">
+          <Info className="mt-px size-3.5 shrink-0 text-ink-faint" />
+          <p className="m-0 text-xs leading-relaxed text-ink-muted">
             المداخل المنشورة فقط يستخدمها المساعد الذكي في إجاباته. المسودّات تبقى
             مخفية.
           </p>
@@ -122,7 +122,7 @@ export function KnowledgeFormAside({
         <button
           type="button"
           onClick={onCancel}
-          className="w-full py-2 text-[13.5px] font-medium text-[#8A8F98] transition-colors hover:text-[#C0392B]"
+          className="w-full py-2 text-[13.5px] font-medium text-ink-muted transition-colors hover:text-danger-fg"
         >
           إلغاء
         </button>
@@ -139,7 +139,7 @@ function Note({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-2.5 py-1.5 text-[12.5px] leading-relaxed text-[#7A7F88]">
+    <div className="flex items-start gap-2.5 py-1.5 text-[12.5px] leading-relaxed text-ink-muted">
       <span className="mt-px shrink-0 text-primary">{icon}</span>
       <p className="m-0">{children}</p>
     </div>

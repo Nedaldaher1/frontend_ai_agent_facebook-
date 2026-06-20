@@ -35,14 +35,14 @@ export const Login = () => {
     );
   };
 
-  const fieldClass = cn("h-11 rounded-xl bg-white");
+  const fieldClass = cn("h-11 rounded-xl bg-card");
 
   return (
     <AuthLayout
       heading="تسجيل الدخول"
       subheading="أهلاً بعودتك — ادخل إلى لوحة تحكّم الكتالوج."
     >
-      <Card className="rounded-2xl border-[#ECEDF1] shadow-sm">
+      <Card className="rounded-2xl border-line shadow-sm dark:shadow-none">
         <CardContent className="p-6 sm:p-7">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
@@ -81,7 +81,7 @@ export const Login = () => {
               />
             </div>
 
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-[#4A4E57]">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-2">
               <Checkbox
                 checked={remember}
                 onCheckedChange={(checked) => setRemember(checked === true)}
@@ -101,7 +101,7 @@ export const Login = () => {
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-center text-sm text-[#7A7F88]">
+      <p className="mt-6 text-center text-sm text-ink-muted">
         ليس لديك حساب؟{" "}
         <Link
           to="/register"

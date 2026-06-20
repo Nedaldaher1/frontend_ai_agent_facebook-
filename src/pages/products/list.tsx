@@ -47,7 +47,7 @@ const PAGE_SIZE = 12;
 /** Brand primary button (accent fill + soft colored shadow), shared by the
  *  header and the empty state — mirrors `ui.primaryBtn` from the prototype. */
 const primaryBtnClass =
-  "h-auto gap-2 rounded-[12px] px-[19px] py-[11px] text-sm font-semibold shadow-[0_6px_18px_-8px_#2B50D6]";
+  "h-auto gap-2 rounded-[12px] px-[19px] py-[11px] text-sm font-semibold shadow-[0_6px_18px_-8px_#2B50D6] dark:shadow-none";
 
 export const ProductList = () => {
   const { create, edit } = useNavigation();
@@ -150,18 +150,18 @@ export const ProductList = () => {
       {/* Header */}
       <div className="mb-[26px] flex items-end justify-between gap-5">
         <div>
-          <div className="mb-[7px] text-xs font-semibold text-[#9AA0A9]">
+          <div className="mb-[7px] text-xs font-semibold text-ink-faint">
             الكتالوج
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="m-0 text-[30px] font-semibold tracking-[-0.4px] text-[#14161B]">
+            <h1 className="m-0 text-[30px] font-semibold tracking-[-0.4px] text-ink">
               المنتجات
             </h1>
-            <span className="rounded-[20px] border border-[#E6E8EC] bg-card px-3 py-1 text-[13px] font-semibold text-[#6B7079]">
+            <span className="rounded-[20px] border border-neutral-line bg-card px-3 py-1 text-[13px] font-semibold text-neutral-fg">
               {total} منتج
             </span>
           </div>
-          <p className="mt-[9px] max-w-[480px] text-[13.5px] leading-relaxed text-[#7A7F88]">
+          <p className="mt-[9px] max-w-[480px] text-[13.5px] leading-relaxed text-ink-muted">
             يقرأ المساعد الذكي هذا الكتالوج مباشرةً — تأكّد من دقّة البيانات وانشر
             المنتجات الجاهزة فقط.
           </p>
@@ -176,7 +176,7 @@ export const ProductList = () => {
       {!isError && (
         <div className="mb-[18px] flex flex-wrap items-center gap-[11px]">
           <div className="relative min-w-[160px] flex-1">
-            <Search className="pointer-events-none absolute top-1/2 start-[13px] size-4 -translate-y-1/2 text-[#A2A7AF]" />
+            <Search className="pointer-events-none absolute top-1/2 start-[13px] size-4 -translate-y-1/2 text-ink-faint" />
             <Input
               value={searchInput}
               onChange={(e) => {
@@ -184,7 +184,7 @@ export const ProductList = () => {
                 resetPage();
               }}
               placeholder="ابحث باسم المنتج…"
-              className="h-[42px] rounded-[12px] border-[#E2E4E9] bg-card ps-10 text-sm"
+              className="h-[42px] rounded-[12px] border-line-2 bg-card ps-10 text-sm"
             />
           </div>
           <FilterSelect
@@ -258,15 +258,15 @@ export const ProductList = () => {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
         <AlertDialogContent className="max-w-[380px] rounded-[20px] p-[26px]">
-          <div className="mb-4 flex size-[52px] items-center justify-center rounded-[15px] border border-[#F2D6D6] bg-[#FBEDED] text-[#C0392B]">
+          <div className="mb-4 flex size-[52px] items-center justify-center rounded-[15px] border border-danger-line bg-danger-bg text-danger-fg">
             <Trash2 className="size-5" />
           </div>
-          <AlertDialogTitle className="text-lg font-semibold text-[#14161B]">
+          <AlertDialogTitle className="text-lg font-semibold text-ink">
             حذف المنتج؟
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-[13.5px] leading-relaxed text-[#7A7F88]">
+          <AlertDialogDescription className="text-[13.5px] leading-relaxed text-ink-muted">
             سيتم حذف «
-            <span className="font-semibold text-[#4A4E57]">
+            <span className="font-semibold text-ink-2">
               {deleteTarget?.name}
             </span>
             » نهائياً ولن يظهر للمساعد الذكي. لا يمكن التراجع.
@@ -304,7 +304,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="h-[42px] min-w-[140px] rounded-[12px] border-[#E2E4E9] bg-card text-[13.5px] font-medium text-[#3A3E47]">
+      <SelectTrigger className="h-[42px] min-w-[140px] rounded-[12px] border-line-2 bg-card text-[13.5px] font-medium text-ink-2">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -327,17 +327,17 @@ function EmptyState({
   onAdd: () => void;
 }) {
   return (
-    <div className="rounded-[18px] border border-[#ECEDF1] bg-card px-[30px] py-[74px] text-center shadow-[0_1px_2px_rgba(16,18,22,.04)]">
+    <div className="rounded-[18px] border border-line bg-card px-[30px] py-[74px] text-center shadow-[0_1px_2px_rgba(16,18,22,.04)]">
       <div
-        className="mx-auto mb-[22px] flex size-[88px] items-center justify-center rounded-[24px] border border-[#E3E8F8] text-[34px] text-primary"
-        style={{ background: "linear-gradient(155deg,#EEF1FC,#fff)" }}
+        className="mx-auto mb-[22px] flex size-[88px] items-center justify-center rounded-[24px] border border-accent-line text-[34px] text-primary"
+        style={{ background: "linear-gradient(155deg,var(--accent-soft),var(--card))" }}
       >
         <Diamond className="size-9" />
       </div>
-      <h2 className="mb-2 text-[21px] font-semibold text-[#14161B]">
+      <h2 className="mb-2 text-[21px] font-semibold text-ink">
         {filtered ? "لا توجد نتائج مطابقة" : "أضف أوّل منتج لكتالوجك"}
       </h2>
-      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-[#7A7F88]">
+      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-ink-muted">
         {filtered
           ? "جرّب تعديل كلمات البحث أو إزالة بعض عوامل التصفية."
           : "ابدأ برفع صور العباية ودع الذكاء الاصطناعي يقترح الخصائص — ثم راجعها وانشرها ليراها زبائنك."}
@@ -354,14 +354,14 @@ function EmptyState({
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="rounded-[18px] border border-[#F2DCDC] bg-card px-[30px] py-[60px] text-center shadow-[0_1px_2px_rgba(16,18,22,.04)]">
-      <div className="mx-auto mb-5 flex size-[78px] items-center justify-center rounded-[22px] border border-[#F2D6D6] bg-[#FBEDED] text-[#C0392B]">
+    <div className="rounded-[18px] border border-danger-line bg-card px-[30px] py-[60px] text-center shadow-[0_1px_2px_rgba(16,18,22,.04)]">
+      <div className="mx-auto mb-5 flex size-[78px] items-center justify-center rounded-[22px] border border-danger-line bg-danger-bg text-danger-fg">
         <TriangleAlert className="size-8" />
       </div>
-      <h2 className="mb-2 text-xl font-semibold text-[#14161B]">
+      <h2 className="mb-2 text-xl font-semibold text-ink">
         تعذّر تحميل المنتجات
       </h2>
-      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-[#7A7F88]">
+      <p className="mx-auto mb-6 max-w-[380px] text-sm leading-[1.7] text-ink-muted">
         حدث خطأ أثناء الاتصال بالخادم. تحقّق من الاتصال وحاول مرّة أخرى.
       </p>
       <Button
@@ -386,7 +386,7 @@ function Pagination({
   onChange: (page: number) => void;
 }) {
   return (
-    <div className="mt-4 flex items-center justify-between gap-3 text-[13px] text-[#7A7F88]">
+    <div className="mt-4 flex items-center justify-between gap-3 text-[13px] text-ink-muted">
       <span>
         صفحة {currentPage} من {pageCount}
       </span>

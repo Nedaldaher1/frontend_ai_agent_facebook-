@@ -9,10 +9,13 @@
 
 export const brand = {
   name: "ماسة فاشن",
-  /** Primary accent used across buttons, active nav, focus rings. */
+  /** Primary accent used across buttons, active nav, focus rings. Kept as a raw
+   *  hex because {@link tint} mixes it with white; theme-aware accent surfaces
+   *  should use the `--accent-soft` / `--accent-line` tokens instead. */
   accent: "#2B50D6",
-  /** A touch darker than `accent` — used for accent-on-tint text/borders. */
-  accentDark: "color-mix(in srgb, #2B50D6, #000 16%)",
+  /** Accent-on-tint text/border color. Theme-aware: the prototype's exact
+   *  darkened brand in light, a lightened brand in dark (see `--publish-fg`). */
+  accentDark: "var(--publish-fg)",
   currency: "د.أ",
 } as const;
 
@@ -25,34 +28,58 @@ export function tint(hex: string, percent: number): string {
   return `color-mix(in srgb, ${hex} ${percent}%, #fff)`;
 }
 
-/** Surface / text palette from the prototype. */
+/**
+ * Surface / text palette from the prototype, routed through the theme-aware
+ * CSS variables defined in `src/App.css`. The light values of those tokens
+ * equal the prototype hexes exactly (light mode is unchanged); the `.dark`
+ * block re-tunes them, so every consumer adapts with no per-component work.
+ */
 export const palette = {
-  appBg: "#F4F5F7",
-  reviewBarBg: "#0B0C0F",
-  sidebarBg: "#14161B",
-  cardBg: "#FFFFFF",
-  cardBorder: "#ECEDF1",
-  textStrong: "#14161B",
-  textMuted: "#7A7F88",
-  textFaint: "#9197A0",
-  inputBorder: "#E2E4E9",
+  appBg: "var(--app-bg)",
+  reviewBarBg: "var(--review-bar)",
+  sidebarBg: "var(--sidebar-bg)",
+  cardBg: "var(--card)",
+  cardBorder: "var(--line)",
+  textStrong: "var(--ink)",
+  textMuted: "var(--ink-muted)",
+  textFaint: "var(--ink-faint)",
+  inputBorder: "var(--line-2)",
 } as const;
 
-/** Semantic colors for stock badges, keyed by availability. */
+/** Semantic colors for stock badges, keyed by availability (theme-aware). */
 export const statusColors = {
-  in: { fg: "#1B7A4E", bg: "#EAF6EF", border: "#CDEBD9", dot: "#1FA463" },
-  out: { fg: "#B23B3B", bg: "#FBEDED", border: "#F2D6D6", dot: "#D85656" },
-  soon: { fg: "#9A6B12", bg: "#FBF4E6", border: "#F0E2C2", dot: "#E2A33A" },
+  in: {
+    fg: "var(--ok-fg)",
+    bg: "var(--ok-bg)",
+    border: "var(--ok-line)",
+    dot: "var(--ok-dot)",
+  },
+  out: {
+    fg: "var(--danger-fg)",
+    bg: "var(--danger-bg)",
+    border: "var(--danger-line)",
+    dot: "var(--danger-dot)",
+  },
+  soon: {
+    fg: "var(--warn-fg)",
+    bg: "var(--warn-bg)",
+    border: "var(--warn-line)",
+    dot: "var(--warn-dot)",
+  },
 } as const;
 
 /** Colors for the publish-state badge. `published` is accent-tinted. */
 export const publishColors = {
   published: {
-    fg: brand.accentDark,
-    bg: tint(brand.accent, 12),
-    border: tint(brand.accent, 32),
+    fg: "var(--publish-fg)",
+    bg: "var(--publish-bg)",
+    border: "var(--publish-line)",
   },
-  draft: { fg: "#6B7079", bg: "#F1F2F5", border: "#E6E8EC" },
+  draft: {
+    fg: "var(--neutral-fg)",
+    bg: "var(--neutral-bg)",
+    border: "var(--neutral-line)",
+  },
 } as const;
 
 export const radii = {

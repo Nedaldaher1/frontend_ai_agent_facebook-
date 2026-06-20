@@ -71,7 +71,7 @@ function ContentSection({
           <Input
             {...register("title")}
             placeholder="مثال: هل يمكن إرجاع العباية بعد الاستلام؟"
-            className={cn(fieldClass, errors.title && "border-[#E3A6A6]")}
+            className={cn(fieldClass, errors.title && "border-danger-line")}
           />
           {errors.title && <ErrorText>العنوان مطلوب</ErrorText>}
         </div>
@@ -85,7 +85,7 @@ function ContentSection({
             <SelectTrigger
               className={cn(
                 selectTriggerClass,
-                errors.category && "border-[#E3A6A6]",
+                errors.category && "border-danger-line",
               )}
             >
               <SelectValue placeholder="— اختر الفئة —" />
@@ -130,7 +130,7 @@ function ContentSection({
             className={cn(
               fieldClass,
               "leading-relaxed",
-              errors.content && "border-[#E3A6A6]",
+              errors.content && "border-danger-line",
             )}
           />
           {errors.content ? (
@@ -160,17 +160,17 @@ function OrganiseSection({
         {/* Tags */}
         <div>
           <FieldLabel>الوسوم</FieldLabel>
-          <div className="flex flex-wrap items-center gap-[7px] rounded-[11px] border border-[#E2E4E9] bg-card px-[11px] py-[9px] focus-within:border-primary">
+          <div className="flex flex-wrap items-center gap-[7px] rounded-[11px] border border-line-2 bg-card px-[11px] py-[9px] focus-within:border-primary">
             {values.tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[#D6DEF8] bg-[#EEF1FC] py-[5px] pe-2.5 ps-1.5 text-[12.5px] font-medium text-primary"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-accent-line bg-accent-soft py-[5px] pe-2.5 ps-1.5 text-[12.5px] font-medium text-primary"
               >
                 <button
                   type="button"
                   onClick={() => onRemoveTag(tag)}
                   aria-label={`إزالة ${tag}`}
-                  className="text-[#7E94D8] transition-colors hover:text-primary"
+                  className="text-[#7E94D8] transition-colors hover:text-primary dark:text-[#8ea6ee]"
                 >
                   ✕
                 </button>
@@ -187,7 +187,7 @@ function OrganiseSection({
                 }
               }}
               placeholder="أضف وسماً…"
-              className="min-w-[120px] flex-1 p-1 text-[13.5px] text-[#14161B] outline-none"
+              className="min-w-[120px] flex-1 p-1 text-[13.5px] text-ink outline-none"
             />
           </div>
           <Hint>أوصاف حرّة تساعد على التنظيم — اضغط Enter للإضافة.</Hint>

@@ -65,15 +65,15 @@ export function ProductCombobox({ value, onChange, id }: ProductComboboxProps) {
           id={id}
           role="combobox"
           aria-expanded={open}
-          className="flex h-auto w-full items-center justify-between gap-2 rounded-[11px] border border-[#E2E4E9] bg-card px-[13px] py-[11px] text-sm font-medium text-[#3A3E47] transition-colors focus:border-primary focus:outline-none"
+          className="flex h-auto w-full items-center justify-between gap-2 rounded-[11px] border border-line-2 bg-card px-[13px] py-[11px] text-sm font-medium text-ink-2 transition-colors focus:border-primary focus:outline-none"
         >
           <span className="flex min-w-0 items-center gap-2">
             {value != null && (
-              <Package className="size-3.5 shrink-0 text-[#9197A0]" />
+              <Package className="size-3.5 shrink-0 text-ink-faint" />
             )}
             <span className="truncate">{label}</span>
           </span>
-          <ChevronsUpDown className="size-4 shrink-0 text-[#9197A0]" />
+          <ChevronsUpDown className="size-4 shrink-0 text-ink-faint" />
         </button>
       </PopoverTrigger>
       <PopoverContent

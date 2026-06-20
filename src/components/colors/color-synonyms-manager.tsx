@@ -136,7 +136,7 @@ export function ColorSynonymsManager({
               }
             }}
             placeholder="أضف مصطلحًا… مثال: نبيتي"
-            className={cn(fieldClass, addError && "border-[#E3A6A6]")}
+            className={cn(fieldClass, addError && "border-danger-line")}
           />
           <Button
             type="button"
@@ -154,7 +154,7 @@ export function ColorSynonymsManager({
       {/* Staged terms */}
       <div className="mt-[18px]">
         {chips.length === 0 ? (
-          <p className="rounded-[12px] border border-dashed border-[#E2E4E9] bg-[#FAFAFB] px-3.5 py-4 text-center text-[13px] text-[#9197A0]">
+          <p className="rounded-[12px] border border-dashed border-line-2 bg-surface-1 px-3.5 py-4 text-center text-[13px] text-ink-faint">
             لا توجد مصطلحات بعد — أضف أوّل مصطلح لهذا اللون.
           </p>
         ) : (
@@ -163,7 +163,7 @@ export function ColorSynonymsManager({
               editingKey === chip.key ? (
                 <li
                   key={chip.key}
-                  className="rounded-[12px] border border-[#CBD6F5] bg-[#F7F9FE] p-1.5"
+                  className="rounded-[12px] border border-accent-line bg-accent-soft p-1.5"
                 >
                   <div className="flex items-stretch gap-2">
                     <Input
@@ -184,7 +184,7 @@ export function ColorSynonymsManager({
                       className={cn(
                         fieldClass,
                         "bg-card",
-                        editError && "border-[#E3A6A6]",
+                        editError && "border-danger-line",
                       )}
                     />
                     <RowIconButton
@@ -244,18 +244,18 @@ function ChipRow({
         className={cn(
           "flex items-center justify-between gap-2 rounded-[12px] border px-3.5 py-2.5",
           failed
-            ? "border-[#E3A6A6] bg-[#FBEDED]"
+            ? "border-danger-line bg-danger-bg"
             : isNew
-              ? "border-[#CBD6F5] bg-[#F7F9FE]"
-              : "border-[#ECEDF1] bg-card",
+              ? "border-accent-line bg-accent-soft"
+              : "border-line bg-card",
         )}
       >
         <span className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-sm font-medium text-[#1B1D23]">
+          <span className="truncate text-sm font-medium text-ink">
             {chip.term}
           </span>
           {isNew && (
-            <span className="shrink-0 rounded-[5px] bg-[#EAF0FF] px-[6px] py-0.5 text-[10px] font-semibold text-primary">
+            <span className="shrink-0 rounded-[5px] bg-accent-soft px-[6px] py-0.5 text-[10px] font-semibold text-primary">
               غير محفوظ
             </span>
           )}
@@ -314,11 +314,11 @@ function RowIconButton({
       className={cn(
         "flex size-[32px] shrink-0 items-center justify-center rounded-[9px] border bg-card transition-colors disabled:opacity-50",
         tone === "default" &&
-          "border-[#E6E8EC] text-[#7A7F88] hover:border-[#CBD6F5] hover:bg-[#EEF1FC] hover:text-primary",
+          "border-neutral-line text-ink-muted hover:border-accent-line hover:bg-accent-soft hover:text-primary",
         tone === "danger" &&
-          "border-[#E6E8EC] text-[#7A7F88] hover:border-[#F2D6D6] hover:bg-[#FBEDED] hover:text-[#C0392B]",
+          "border-neutral-line text-ink-muted hover:border-danger-line hover:bg-danger-bg hover:text-danger-fg",
         tone === "confirm" &&
-          "border-[#CDEBD9] bg-[#EAF6EF] text-[#1B7A4E] hover:bg-[#DFF1E7]",
+          "border-ok-line bg-ok-bg text-ok-fg hover:bg-ok-bg",
       )}
     >
       {children}
