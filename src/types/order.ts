@@ -30,12 +30,6 @@ export type OrderDto = {
   currency: "JOD";
   status: OrderStatus;
   createdAt: string;
-  /**
-   * Number of line items. NOT part of the documented OrderDto — surfaced only if
-   * the list endpoint chooses to include it, so the list's "items count" column
-   * can populate without an N+1 fetch. Renders as «—» when absent.
-   */
-  itemCount?: number | null;
 };
 
 /** A single line item within an order. */
@@ -43,7 +37,11 @@ export type OrderItemDto = {
   id: string;
   orderId: string;
   productId: string | null;
-  /** Storage KEY (not a URL); the image resolves from `imageUrl` when present. */
+  /**
+   * Storage KEY (not a URL). The admin orders API does NOT resolve it, so the UI
+   * builds the image URL from this key (`${STORAGE_URL}/<key>`), preferring
+   * `imageUrl` if a future API revision returns one.
+   */
   storageKey: string;
   size: string | null;
   qty: number;

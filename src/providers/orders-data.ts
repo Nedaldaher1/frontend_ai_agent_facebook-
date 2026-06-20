@@ -6,9 +6,11 @@
  * interceptor, so auth + the `{ timestamp, path, error }` error envelope are
  * handled in one place (CLAUDE.md §6).
  *
- *  - getList → GET /admin/orders?status&limit&offset — maps the custom
- *              `{ items, total, limit, offset }` envelope to Refine's
- *              `{ data, total }`. `limit` is capped at 200.
+ *  - getList → GET /admin/orders?limit&offset — the endpoint returns a BARE ARRAY
+ *              (no `{ items, total }` envelope, no count header) and has NO status
+ *              filter. So one generous page is fetched newest-first and mapped to
+ *              Refine's `{ data, total }`; status filtering, per-status counts and
+ *              pagination are all done client-side in the list page.
  *  - getOne  → GET /admin/orders/:id — returns OrderDto + nested `items[]`, so the
  *              detail page reads everything from this single call.
  *  - custom  → PATCH /admin/orders/:id/status — the status transition. This is a
@@ -18,12 +20,11 @@
  * create / update / deleteOne are intentionally unsupported: orders are created by
  * the agent, not the admin, and the only mutation (status) lives on a sub-resource.
  * They throw a clear error so a mis-wired hook fails loudly instead of hitting the
- * wrong URL. List order is fixed server-side, so sorters are ignored.
+ * wrong URL.
  */
 
 import type {
   BaseRecord,
-  CrudFilters,
   CustomParams,
   CustomResponse,
   DataProvider,
@@ -33,45 +34,16 @@ import type {
   GetOneResponse,
 } from "@refinedev/core";
 
-import type { OrderDto, OrderStatus, OrderWithItemsDto } from "@/types/order";
+import type { OrderDto, OrderWithItemsDto } from "@/types/order";
 import { API_URL } from "./constants";
 import { apiFetch } from "./http";
-
-/** The custom list envelope the orders endpoint returns. */
-type OrdersEnvelope = {
-  items: OrderDto[];
-  total: number;
-  limit: number;
-  offset: number;
-};
 
 /** The backend caps the page size at 200. */
 const MAX_LIMIT = 200;
 
-const ORDER_STATUSES: readonly string[] = [
-  "draft",
-  "confirmed",
-  "fulfilled",
-  "canceled",
-];
-
-/** Read the `status` filter (the only server-side one) from Refine's filters. */
-const statusFromFilters = (
-  filters: CrudFilters | undefined,
-): OrderStatus | undefined => {
-  for (const f of filters ?? []) {
-    if (
-      "field" in f &&
-      f.field === "status" &&
-      f.operator === "eq" &&
-      typeof f.value === "string" &&
-      ORDER_STATUSES.includes(f.value)
-    ) {
-      return f.value as OrderStatus;
-    }
-  }
-  return undefined;
-};
+/** Newest order first by `createdAt` (guards the list's newest-first contract). */
+const byNewestFirst = (a: OrderDto, b: OrderDto): number =>
+  new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 
 const unsupported = async (): Promise<never> => {
   throw Object.assign(new Error("هذه العملية غير مدعومة على الطلبات"), {
@@ -84,22 +56,19 @@ export const ordersDataProvider: DataProvider = {
 
   getList: async <TData extends BaseRecord = BaseRecord>({
     pagination,
-    filters,
   }: GetListParams): Promise<GetListResponse<TData>> => {
-    const pageSize = Math.min(pagination?.pageSize ?? 50, MAX_LIMIT);
+    const pageSize = Math.min(pagination?.pageSize ?? MAX_LIMIT, MAX_LIMIT);
     const current = pagination?.currentPage ?? 1;
     const params = new URLSearchParams({
       limit: String(pageSize),
       offset: String((current - 1) * pageSize),
     });
-    const status = statusFromFilters(filters);
-    if (status) params.set("status", status);
 
-    const body = await apiFetch<OrdersEnvelope>(`admin/orders?${params}`);
-    return {
-      data: (body.items ?? []) as unknown as TData[],
-      total: body.total ?? 0,
-    };
+    // The endpoint responds with a bare `OrderDto[]` (newest-first by default);
+    // guard the shape and re-sort defensively so order never depends on it.
+    const rows = await apiFetch<OrderDto[]>(`admin/orders?${params}`);
+    const data = (Array.isArray(rows) ? rows : []).slice().sort(byNewestFirst);
+    return { data: data as unknown as TData[], total: data.length };
   },
 
   getOne: async <TData extends BaseRecord = BaseRecord>({

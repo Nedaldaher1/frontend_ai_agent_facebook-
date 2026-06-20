@@ -414,7 +414,11 @@ function OrderLine({
 }) {
   return (
     <li className="flex items-center gap-3 rounded-[14px] border border-line bg-surface-1 p-2.5">
-      <OrderItemThumb imageUrl={item.imageUrl} className="size-[58px]" />
+      <OrderItemThumb
+        imageUrl={item.imageUrl}
+        storageKey={item.storageKey}
+        className="size-[58px]"
+      />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-ink">
           {item.productName || "منتج غير معروف"}

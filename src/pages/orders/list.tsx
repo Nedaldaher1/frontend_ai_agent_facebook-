@@ -1,14 +1,15 @@
 /**
  * Orders list — a status-filterable, paginated table of orders.
  *
- * Only `status` is filterable server-side (the admin list accepts `?status=`),
- * surfaced here as filter chips. Draft orders need staff action, so their count is
- * fetched separately (a tiny `status=draft` query) and surfaced both as a chip
- * badge and a banner that jumps straight to the draft view.
+ * The admin list endpoint returns a bare array with no status filter and no count
+ * header, so one generous page is loaded newest-first and ALL filtering, the
+ * per-status counts and pagination are computed client-side. Draft orders need
+ * staff action, so their count is surfaced both as a tab badge and a banner that
+ * jumps straight to the draft view.
  */
 
 import { useMemo, useState } from "react";
-import { useList, useNavigation, type CrudFilters } from "@refinedev/core";
+import { useList, useNavigation } from "@refinedev/core";
 import {
   ChevronLeft,
   ChevronRight,
@@ -26,7 +27,10 @@ import {
 import type { OrderDto, OrderStatus } from "@/types/order";
 import { cn } from "@/lib/utils";
 
+/** One client-side page of rows. */
 const PAGE_SIZE = 20;
+/** Newest orders pulled in a single request, then filtered/counted/paged locally. */
+const LOAD_LIMIT = 200;
 
 type StatusTab = { value: OrderStatus | "all"; label: string };
 
@@ -43,34 +47,51 @@ export const OrderList = () => {
   const [status, setStatus] = useState<StatusTab["value"]>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filters = useMemo<CrudFilters>(
-    () =>
-      status !== "all"
-        ? [{ field: "status", operator: "eq", value: status }]
-        : [],
-    [status],
-  );
-
+  // The admin list has no status filter and no count header, so one generous page
+  // is loaded newest-first and filtering / counts / pagination are all derived
+  // client-side from it.
   const { result, query } = useList<OrderDto>({
     resource: "orders",
     dataProviderName: "orders",
-    pagination: { currentPage, pageSize: PAGE_SIZE },
-    filters,
+    pagination: { currentPage: 1, pageSize: LOAD_LIMIT },
   });
-
-  // Draft count for the "needs action" badge + banner (cheap, cached by Refine).
-  const { result: draftResult } = useList<OrderDto>({
-    resource: "orders",
-    dataProviderName: "orders",
-    pagination: { currentPage: 1, pageSize: 1 },
-    filters: [{ field: "status", operator: "eq", value: "draft" }],
-  });
-  const draftCount = draftResult?.total ?? 0;
-
-  const orders = Array.isArray(result?.data) ? result.data : [];
-  const total = result?.total ?? 0;
   const { isLoading, isError, refetch } = query;
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const allOrders = useMemo(
+    () => (Array.isArray(result?.data) ? result.data : []),
+    [result?.data],
+  );
+
+  // Per-status counts over the loaded set — drive the tab badges and draft banner.
+  const counts = useMemo(() => {
+    const acc: Record<StatusTab["value"], number> = {
+      all: allOrders.length,
+      draft: 0,
+      confirmed: 0,
+      fulfilled: 0,
+      canceled: 0,
+    };
+    for (const o of allOrders) acc[o.status] += 1;
+    return acc;
+  }, [allOrders]);
+  const total = counts.all;
+  const draftCount = counts.draft;
+
+  const filtered = useMemo(
+    () =>
+      status === "all"
+        ? allOrders
+        : allOrders.filter((o) => o.status === status),
+    [allOrders, status],
+  );
+
+  // Clamp the page so a shrinking filtered set never strands us past the last page.
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const page = Math.min(currentPage, pageCount);
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
+  );
 
   const selectStatus = (value: StatusTab["value"]) => {
     setStatus(value);
@@ -126,12 +147,13 @@ export const OrderList = () => {
         </button>
       )}
 
-      {/* Status filter chips */}
+      {/* Status filter chips with client-side per-status counts */}
       {!isError && (
         <div className="mb-[18px] flex flex-wrap items-center gap-2">
           {STATUS_TABS.map((tab) => {
             const active = status === tab.value;
-            const showBadge = tab.value === "draft" && draftCount > 0;
+            const count = counts[tab.value];
+            const draftAlert = tab.value === "draft" && count > 0;
             return (
               <button
                 key={tab.value}
@@ -145,12 +167,19 @@ export const OrderList = () => {
                 )}
               >
                 {tab.label}
-                {showBadge && (
+                {!isLoading && (
                   <span
-                    className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-warn-bg px-1.5 text-[11px] font-bold text-warn-fg"
+                    className={cn(
+                      "inline-flex min-w-[18px] items-center justify-center rounded-full px-1.5 text-[11px] font-bold",
+                      draftAlert
+                        ? "bg-warn-bg text-warn-fg"
+                        : active
+                          ? "bg-card text-primary"
+                          : "bg-surface-1 text-ink-faint",
+                    )}
                     style={{ fontFeatureSettings: "'tnum'" }}
                   >
-                    {draftCount}
+                    {count}
                   </span>
                 )}
               </button>
@@ -164,17 +193,14 @@ export const OrderList = () => {
         <ErrorState onRetry={() => refetch()} />
       ) : isLoading ? (
         <OrdersTableSkeleton rows={6} />
-      ) : orders.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <EmptyState filtered={status !== "all"} />
       ) : (
         <>
-          <OrdersTable
-            orders={orders}
-            onView={(id) => show("orders", id)}
-          />
+          <OrdersTable orders={paged} onView={(id) => show("orders", id)} />
           {pageCount > 1 && (
             <Pagination
-              currentPage={currentPage}
+              currentPage={page}
               pageCount={pageCount}
               onChange={setCurrentPage}
             />

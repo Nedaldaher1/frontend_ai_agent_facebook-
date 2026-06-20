@@ -19,7 +19,7 @@ import {
 
 /** Shared grid template — every row (head, body, skeleton) must use this. */
 const ROW =
-  "grid min-w-[720px] grid-cols-[110px_minmax(120px,1fr)_64px_minmax(120px,150px)_minmax(96px,120px)_64px_96px] items-center gap-2 px-[22px]";
+  "grid min-w-[660px] grid-cols-[110px_minmax(120px,1fr)_64px_minmax(120px,150px)_minmax(96px,120px)_96px] items-center gap-2 px-[22px]";
 
 const cardClass =
   "overflow-hidden overflow-x-auto rounded-[18px] border border-line bg-card shadow-[0_1px_2px_rgba(16,18,22,.04),0_14px_38px_-28px_rgba(16,18,22,.28)]";
@@ -43,7 +43,6 @@ function HeaderRow() {
       <div role="columnheader">المصدر</div>
       <div role="columnheader">الهاتف</div>
       <div role="columnheader">الإجمالي</div>
-      <div role="columnheader">العناصر</div>
       <div role="columnheader">الحالة</div>
     </div>
   );
@@ -101,13 +100,6 @@ export function OrdersTable({ orders, onView }: OrdersTableProps) {
                 className="text-sm font-semibold text-ink"
               />
             </div>
-            <div
-              role="cell"
-              className="text-[13px] text-ink-2"
-              style={{ fontFeatureSettings: "'tnum'" }}
-            >
-              {o.itemCount ?? <span className="text-ink-faint">—</span>}
-            </div>
             <div role="cell">
               <OrderStatusBadge status={o.status} />
             </div>
@@ -133,7 +125,6 @@ export function OrdersTableSkeleton({ rows = 6 }: { rows?: number }) {
           <SkeletonBar className="size-4 rounded-full" />
           <SkeletonBar className="h-[11px] w-[80%]" />
           <SkeletonBar className="h-[11px] w-[60%]" />
-          <SkeletonBar className="h-[11px] w-[40%]" />
           <SkeletonBar className="h-5 w-[64px] rounded-full" />
         </div>
       ))}

@@ -7,9 +7,11 @@
  * (CLAUDE.md §6).
  */
 
+import { useState } from "react";
 import { ImageOff, MessageCircle, MessageSquare } from "lucide-react";
 
 import { COLORS } from "@/constants/enums";
+import { STORAGE_URL } from "@/providers/constants";
 import { cn } from "@/lib/utils";
 import {
   CURRENCY_LABEL,
@@ -136,26 +138,54 @@ export function OrderColorSwatch({ colorName }: { colorName: string }) {
 }
 
 /**
- * A line-item thumbnail. Prefers a resolved `imageUrl`; with none it shows a
- * neutral placeholder (the storage `key` alone can't be turned into a URL on the
- * client — the backend resolves keys to public URLs).
+ * Resolve a line item's image source: a ready `imageUrl` wins (forward-compatible
+ * if the API ever returns one); otherwise the raw `storageKey` is turned into a
+ * public URL via {@link STORAGE_URL} (`${base}/<key>`), the same scheme the
+ * backend's storage driver uses. Returns null when neither is available.
+ */
+const resolveItemImage = (
+  imageUrl?: string | null,
+  storageKey?: string | null,
+): string | null => {
+  if (imageUrl && imageUrl.trim()) return imageUrl.trim();
+  const key = storageKey?.trim();
+  if (!key) return null;
+  if (/^https?:\/\//i.test(key)) return key;
+  return `${STORAGE_URL}/${key.replace(/^\/+/, "")}`;
+};
+
+/**
+ * A line-item thumbnail. Renders the resolved product image (from `imageUrl` or
+ * `storageKey`); falls back to a neutral placeholder when there is no source or
+ * the image fails to load.
  */
 export function OrderItemThumb({
   imageUrl,
+  storageKey,
   className,
 }: {
   imageUrl?: string | null;
+  storageKey?: string | null;
   className?: string;
 }) {
-  if (imageUrl) {
+  const [failed, setFailed] = useState(false);
+  const src = resolveItemImage(imageUrl, storageKey);
+
+  if (src && !failed) {
     return (
       <div
         className={cn(
-          "shrink-0 overflow-hidden rounded-[10px] border border-line",
+          "shrink-0 overflow-hidden rounded-[10px] border border-line bg-surface-1",
           className,
         )}
       >
-        <img src={imageUrl} alt="" className="size-full object-cover" />
+        <img
+          src={src}
+          alt=""
+          loading="lazy"
+          className="size-full object-cover"
+          onError={() => setFailed(true)}
+        />
       </div>
     );
   }
